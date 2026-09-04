@@ -1,6 +1,5 @@
 package com.app.koshpal.core.sms.parser
 
-import com.app.koshpal.core.data.entities.enums.Bank
 import com.app.koshpal.core.data.entities.enums.TransactionType
 import com.app.koshpal.core.sms.model.SmsMessage
 import com.app.koshpal.core.sms.parser.bank.BankParser

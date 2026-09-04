@@ -1,7 +1,5 @@
 package com.app.koshpal.app.domain.model
 
-import com.app.koshpal.app.domain.model.BudgetAllocation
-import com.app.koshpal.app.domain.model.Category
 import java.util.UUID
 
 data class CategoryAllocationUiState(
