@@ -1,0 +1,51 @@
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/DALVIK VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+/bin/
+/gen/
+/out/
+/build
+/app/build
+.gradle/
+.gradle_home/
+.artifacts/
+KOSHPAL_DEEP_DIVE/
+KOTLIN_DEEP_DIVE/
+MFR_DEEP_DIVE/
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/
+!.idea/copyright/
+!.idea/codeStyles/
+
+# Android Studio Navigation editor temp files
+.idea/navEditor.xml
+
+# Android Studio Synthetic Layout Binding
+.idea/syntheticLayouts/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# OS / Mac / Windows
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Android Profiler
+captures/
+.externalNativeBuild
+.cxx

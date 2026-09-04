@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Koshpal</string>
+    <string name="error_request_timeout">The request timed out.</string>
+    <string name="error_too_many_requests">Oops, request quota exceeded.</string>
+    <string name="error_internet">Couldn\'t connect to server, please check your internet connection.</string>
+    <string name="error_unknown">Unknown error occurred, Please try again later.</string>
+    <string name="error_serialization">Coundn\'t serialize or deserialize data.</string>
+    <string name="error_invalid_user">Check credentials. This account does not exist.</string>
+    <string name="error_bad_request">%s</string>
+    <string name="error_not_found">Data not found.</string>
+</resources>

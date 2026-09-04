@@ -1,0 +1,8 @@
+package com.app.koshpal.core.data.remote.dto
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ErrorResponse(
+    val message: String? = null
+)
