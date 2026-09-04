@@ -1,10 +1,19 @@
 package com.app.koshpal.app.fluxdeck
 
-import com.app.koshpal.app.domain.model.*
+import com.app.koshpal.app.domain.model.Budget
+import com.app.koshpal.app.domain.model.Tag
+import com.app.koshpal.app.domain.model.Transaction
+import com.app.koshpal.app.domain.model.Transactions
 import com.app.koshpal.app.states.SyncStatus
 import com.app.koshpal.core.data.entities.enums.BudgetType
 import com.app.koshpal.core.data.entities.enums.TransactionType
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -144,6 +153,7 @@ class TransactionsFluxDeck {
         val cashOnly = args[9] as Boolean
         val receiptsOnly = args[10] as Boolean
         val excludedOnly = args[11] as Boolean
+        @Suppress("UNCHECKED_CAST")
         val tags = args[12] as List<Tag>
 
         list.transactions.filter { transaction ->

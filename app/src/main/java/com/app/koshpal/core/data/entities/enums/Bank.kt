@@ -119,7 +119,7 @@ fun String?.toBankDisplayName(): String {
     if (this == null) return "Unknown Bank"
     return try {
         Bank.valueOf(this).toDisplayName()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "Unknown Bank"
     }
 }

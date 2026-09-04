@@ -2,13 +2,14 @@ package com.app.koshpal.app.viewmodels.transactionsviewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.koshpal.app.domain.model.Category
+import com.app.koshpal.app.domain.coordinator.TransactionsCoordinator
 import com.app.koshpal.app.domain.model.Tag
 import com.app.koshpal.app.fluxdeck.TransactionsFluxDeck
-import com.app.koshpal.app.domain.coordinator.TransactionsCoordinator
 import com.app.koshpal.core.data.entities.enums.BudgetType
 import com.app.koshpal.core.data.entities.enums.TransactionType
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 
 class TransactionCreationViewModel(
     coordinator: TransactionsCoordinator,
@@ -43,9 +44,6 @@ class TransactionCreationViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val availableBudgets = fluxDeck.availableBudgets
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val availableCategories: StateFlow<List<Category>> = fluxDeck.availableCategories
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val allTags: StateFlow<List<Tag>> = fluxDeck.allTags

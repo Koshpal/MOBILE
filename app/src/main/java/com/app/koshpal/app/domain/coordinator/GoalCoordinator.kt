@@ -3,22 +3,22 @@ package com.app.koshpal.app.domain.coordinator
 
 import com.app.koshpal.app.Events
 import com.app.koshpal.app.StateReflector
+import com.app.koshpal.app.data.UserPreferences
 import com.app.koshpal.app.domain.model.Goal
-import com.app.koshpal.app.domain.usecase.goalusecase.GoalUseCases
-import com.app.koshpal.app.domain.usecase.tagusecase.TagUseCases
-import com.app.koshpal.app.domain.usecase.notificationusecase.NotificationUseCases
-import com.app.koshpal.core.data.entities.enums.NotificationType
 import com.app.koshpal.app.domain.model.Notification
+import com.app.koshpal.app.domain.usecase.goalusecase.GoalUseCases
+import com.app.koshpal.app.domain.usecase.notificationusecase.NotificationUseCases
+import com.app.koshpal.app.domain.usecase.tagusecase.TagUseCases
 import com.app.koshpal.app.fluxdeck.GoalFluxDeck
 import com.app.koshpal.app.handleResult
+import com.app.koshpal.core.data.entities.enums.NotificationType
+import com.app.koshpal.core.notification.NotificationHelper
 import com.app.koshpal.core.presentation.util.parseIsoToLocalDate
 import com.app.koshpal.core.presentation.util.toIso8601String
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import com.app.koshpal.app.data.UserPreferences
-import com.app.koshpal.core.notification.NotificationHelper
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -120,22 +120,6 @@ class GoalCoordinator(
         scope.launch {
             goalUseCases.deleteGoalsByIds(selectedIds)
             reflector.emitEvent(Events.Success("${selectedIds.size} goals deleted"))
-        }
-    }
-
-    fun toggleIndividualFlaggedState(id: String) {
-        scope.launch {
-            val flagged = userPreferences.flaggedGoalIds.first()
-            userPreferences.updateFlaggedGoals(if (flagged.contains(id)) flagged - id else flagged + id)
-            reflector.emitEvent(Events.Success("Goal flagged"))
-        }
-    }
-
-    fun toggleIndividualHiddenState(id: String) {
-        scope.launch {
-            val hidden = userPreferences.hiddenGoalIds.first()
-            userPreferences.updateHiddenGoals(if (hidden.contains(id)) hidden - id else hidden + id)
-            reflector.emitEvent(Events.Success("Visibility updated"))
         }
     }
 

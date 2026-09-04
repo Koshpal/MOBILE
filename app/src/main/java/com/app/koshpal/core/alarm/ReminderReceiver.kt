@@ -3,8 +3,8 @@ package com.app.koshpal.core.alarm
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.app.koshpal.app.domain.usecase.dueusecase.DueUseCases
 import com.app.koshpal.app.domain.model.Notification
+import com.app.koshpal.app.domain.usecase.dueusecase.DueUseCases
 import com.app.koshpal.app.domain.usecase.notificationusecase.NotificationUseCases
 import com.app.koshpal.core.data.entities.enums.NotificationType
 import com.app.koshpal.core.domain.util.Result
@@ -77,7 +77,7 @@ class ReminderReceiver : BroadcastReceiver(), KoinComponent {
                         val isRecurring = due.frequency != "One-time" && nextTime != null
 
                         if (due.isCompleted) {
-                            if (isRecurring && nextTime != null) {
+                            if (isRecurring) {
                                 val nextDateStr = dueUseCases.scheduleReminder.formatDisplayDate(nextTime)
                                 val updatedDue = due.copy(
                                     reminderTime = nextTime,
@@ -94,7 +94,7 @@ class ReminderReceiver : BroadcastReceiver(), KoinComponent {
                             )
                             dueUseCases.updateDue(overdueDue)
 
-                            if (isRecurring && nextTime != null) {
+                            if (isRecurring) {
                                 val nextDateStr = dueUseCases.scheduleReminder.formatDisplayDate(nextTime)
                                 val newUpcoming = due.copy(
                                     id = UUID.randomUUID().toString(),
@@ -131,7 +131,7 @@ class ReminderReceiver : BroadcastReceiver(), KoinComponent {
                     )
                     dueUseCases.updateDue(completedDue)
 
-                    if (isRecurring && nextTime != null) {
+                    if (isRecurring) {
                         val nextDateStr = dueUseCases.scheduleReminder.formatDisplayDate(nextTime)
                         val newUpcoming = due.copy(
                             id = UUID.randomUUID().toString(),

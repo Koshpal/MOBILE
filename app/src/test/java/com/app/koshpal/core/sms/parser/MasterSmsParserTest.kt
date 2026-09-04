@@ -66,8 +66,6 @@ class MasterSmsParserTest {
 
     @Test
     fun `Garbage Cleanup - remitter is blacklisted`() {
-        val body = "A/c X1234 credited Rs 1000 from REMITTER"
-        // Force a match using a generic parser if needed, but let's just test ParsedTransaction sanitize
         val p = ParsedTransaction(1000.0, TransactionType.INCOME, Bank.SBI, "REMITTER", "Me", "1234", "123", 0)
         assertEquals(null, p.senderName)
     }
