@@ -13,14 +13,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,15 +39,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
 import com.app.koshpal.app.presentation.budget.component.dialog.MonthlyStartDatePickerDialog
+import com.app.koshpal.app.presentation.globalcomponents.FilterToggleCard
 import com.app.koshpal.core.data.entities.enums.BudgetPeriod
 import com.app.koshpal.core.data.entities.enums.BudgetType
 import com.app.koshpal.core.presentation.util.toDisplayDate
@@ -54,10 +64,12 @@ fun BudgetBasics(
     startDate: String,
     endDate: String? = null,
     budgetType: BudgetType,
+    isRepeating: Boolean,
     updateTitle: (String) -> Unit,
     updatePeriod: (BudgetPeriod) -> Unit,
     updateStartDate: (String) -> Unit,
     updateEndDate: (String) -> Unit = {},
+    updateIsRepeating: (Boolean) -> Unit,
     titleSuggestions: List<String> = emptyList()
 ) {
     var showStartDatePicker by remember { mutableStateOf(false) }
@@ -232,7 +244,7 @@ fun BudgetBasics(
                             .padding(6.dp)
                             .selectableGroup()
                     ) {
-                        BudgetPeriod.entries.forEach { option ->
+                        BudgetPeriod.entries.filter { it != BudgetPeriod.UNKNOWN }.forEach { option ->
                             val isSelected = option == period
                             Box(
                                 modifier = Modifier
@@ -347,6 +359,17 @@ fun BudgetBasics(
                     }
                 }
             }
+        }
+        
+        if (budgetType == BudgetType.RECURRING) {
+            Spacer(modifier = Modifier.height(16.dp))
+            FilterToggleCard(
+                label = "Budget should repeat ${period.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                icon = R.drawable.repeat_one_24px,
+                checked = isRepeating,
+                onCheckedChange = { updateIsRepeating(it) },
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
         }
     }
 }

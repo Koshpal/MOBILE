@@ -23,7 +23,7 @@ import com.app.koshpal.app.domain.model.Category
 import com.app.koshpal.app.domain.model.defaultDialogCategories
 import com.app.koshpal.app.domain.model.getInitials
 import com.app.koshpal.app.domain.model.toColorLong
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.app.presentation.budget.component.CreateCategory
 import com.app.koshpal.ui.theme.Jakarta
 

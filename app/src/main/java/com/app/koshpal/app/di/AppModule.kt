@@ -3,53 +3,17 @@ package com.app.koshpal.app.di
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.app.koshpal.app.data.UserPreferences
-import com.app.koshpal.app.data.repository.*
-import com.app.koshpal.app.domain.repository.*
-import com.app.koshpal.app.domain.usecase.budgetusecase.*
-import com.app.koshpal.app.domain.usecase.categoriesusecase.*
-import com.app.koshpal.app.domain.usecase.dueusecase.*
-import com.app.koshpal.app.domain.usecase.reminderType.*
-import com.app.koshpal.app.domain.usecase.notificationusecase.*
-import com.app.koshpal.app.domain.usecase.transactionsusecase.*
-import com.app.koshpal.app.domain.usecase.tagusecase.*
-import com.app.koshpal.app.domain.usecase.goalusecase.*
-import com.app.koshpal.app.domain.usecase.authusecase.*
-import com.app.koshpal.app.domain.usecase.SyncAllUseCase
-import com.app.koshpal.app.domain.coordinator.*
-import com.app.koshpal.app.viewmodels.HomeViewModel
-import com.app.koshpal.app.viewmodels.CashViewModel
-import com.app.koshpal.app.viewmodels.cashflowviewmodel.CashFlowViewModel
-import com.app.koshpal.app.viewmodels.budgetviewmodel.BudgetViewModel
-import com.app.koshpal.app.viewmodels.budgetviewmodel.BudgetCreationViewModel
-import com.app.koshpal.app.viewmodels.budgetviewmodel.BudgetSettingsViewModel
-import com.app.koshpal.app.viewmodels.tagsviewmodel.TagsViewModel
-import com.app.koshpal.app.viewmodels.tagsviewmodel.TagsCreationViewModel
-import com.app.koshpal.app.viewmodels.duesviewmodel.DuesViewModel
-import com.app.koshpal.app.viewmodels.duesviewmodel.DuesCreationViewModel
-import com.app.koshpal.app.viewmodels.transactionsviewmodel.TransactionsViewModel
-import com.app.koshpal.app.viewmodels.transactionsviewmodel.TransactionCreationViewModel
-import com.app.koshpal.app.viewmodels.transactionsviewmodel.DetailedTransactionViewModel
-import com.app.koshpal.app.viewmodels.goalsviewmodel.GoalViewModel
-import com.app.koshpal.app.viewmodels.goalsviewmodel.GoalCreationViewModel
-import com.app.koshpal.app.viewmodels.notificationsviewmodel.NotificationsViewModel
-import com.app.koshpal.app.viewmodels.authviewmodel.AuthViewModel
-import com.app.koshpal.app.fluxdeck.*
-import com.app.koshpal.app.fluxdeck.ProfileFluxDeck
-import com.app.koshpal.app.domain.coordinator.ProfileCoordinator
-import com.app.koshpal.app.viewmodels.profileviewmodel.ProfileViewModel
-import com.app.koshpal.core.data.local.AppDatabase
-import com.app.koshpal.core.data.local.source.*
-import com.app.koshpal.core.data.remote.source.RemoteBudgetDataSource
-import com.app.koshpal.core.data.remote.source.BudgetDataSource
-import com.app.koshpal.core.data.remote.source.RemoteGoalDataSource
-import com.app.koshpal.core.data.remote.source.GoalDataSource
-import com.app.koshpal.core.data.remote.source.RemoteAuthDataSource
-import com.app.koshpal.core.data.remote.source.AuthDataSource
-import com.app.koshpal.core.data.remote.source.RemoteTransactionsDataSource
-import com.app.koshpal.core.data.remote.source.TransactionsDataSource
+import com.app.koshpal.app.data.createAndroidDataStore
+import com.app.koshpal.app.domain.usecase.transactionsusecase.ProcessIncomingSmsUseCase
+import com.app.koshpal.app.domain.usecase.transactionsusecase.SmsTransactionSyncer
+import com.app.koshpal.app.domain.usecase.transactionsusecase.SyncSmsTransactionsUseCase
+import com.app.koshpal.app.domain.usecase.transactionsusecase.TransactionUseCases
+import com.app.koshpal.core.alarm.AndroidReminderScheduler
 import com.app.koshpal.core.alarm.ReminderScheduler
+import com.app.koshpal.core.data.local.AppDatabase
+import com.app.koshpal.core.notification.AndroidNotificationHelper
 import com.app.koshpal.core.notification.NotificationHelper
+import com.app.koshpal.core.sms.AndroidSmsTransactionSyncer
 import com.app.koshpal.core.sms.SmsTransactionPipeline
 import com.app.koshpal.core.sms.dedup.DuplicateDetector
 import com.app.koshpal.core.sms.dedup.DuplicateDetectorImpl
@@ -63,17 +27,8 @@ import com.app.koshpal.core.sms.reader.SmsReaderImpl
 import com.app.koshpal.core.sms.util.ContactResolver
 import com.app.koshpal.core.sms.validate.TransactionValidator
 import com.app.koshpal.core.sms.validate.TransactionValidatorImpl
-import com.app.koshpal.core.data.networking.HttpClientFactory
 import io.ktor.client.engine.okhttp.OkHttp
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModel
-import org.koin.core.qualifier.named
-import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val MIGRATION_4_5 = object : Migration(4, 5) {
@@ -219,59 +174,36 @@ val MIGRATION_27_28 = object : Migration(27, 28) {
     override fun migrate(db: SupportSQLiteDatabase) { }
 }
 
+val MIGRATION_28_29 = object : Migration(28, 29) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `budgets` ADD COLUMN `isRepeating` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 val appModule = module {
-    single<CoroutineDispatcher>(named("IODispatcher")) { Dispatchers.IO }
-    single<CoroutineDispatcher>(named("DefaultDispatcher")) { Dispatchers.Default }
-    single(named("MainScope")) { CoroutineScope(SupervisorJob() + Dispatchers.Main) }
-    single { Room.databaseBuilder(androidContext(), AppDatabase::class.java,"koshpal_database")
+    single { Room.databaseBuilder(androidContext(), AppDatabase::class.java, "koshpal_database")
         .addMigrations(
             MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, 
             MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, 
             MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, 
             MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21,
             MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25,
-            MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28
+            MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29
         )
         .fallbackToDestructiveMigration(true)
         .build() }
-    single { get<AppDatabase>().budgetDao() }
-    single { get<AppDatabase>().transactionDao() }
-    single { get<AppDatabase>().categoryDao() }
-    single { get<AppDatabase>().dueDao() }
-    single { get<AppDatabase>().reminderTypeDao() }
-    single { get<AppDatabase>().tagDao() }
-    single { get<AppDatabase>().goalDao() }
-    single { get<AppDatabase>().notificationDao() }
     single { OkHttp.create() }
-    single { HttpClientFactory.create(get()) }
-    single { NotificationHelper(androidContext()) }
-    single { ReminderScheduler(androidContext()) }
+    single { createAndroidDataStore(androidContext()) }
+
+    single<NotificationHelper> { AndroidNotificationHelper(androidContext()) }
+    single<ReminderScheduler> { AndroidReminderScheduler(androidContext()) }
+    single<SmsTransactionSyncer> { AndroidSmsTransactionSyncer(get()) }
+
     single<SmsFilter> { SmsFilterImpl() }
     single<TransactionValidator> { TransactionValidatorImpl() }
     single<DuplicateDetector> { DuplicateDetectorImpl() }
     single<SmsReader> { SmsReaderImpl(androidContext()) }
     single { ContactResolver(androidContext()) }
-    singleOf(::RemoteTransactionsDataSource).bind<TransactionsDataSource>()
-    singleOf(::RemoteBudgetDataSource).bind<BudgetDataSource>()
-    singleOf(::RemoteGoalDataSource).bind<GoalDataSource>()
-    singleOf(::TransactionLocalDataSourceImpl).bind<TransactionLocalDataSource>()
-    singleOf(::BudgetLocalDataSourceImpl).bind<BudgetLocalDataSource>()
-    singleOf(::CategoryLocalDataSourceImpl).bind<CategoryLocalDataSource>()
-    singleOf(::DueLocalDataSourceImpl).bind<DueLocalDataSource>()
-    singleOf(::ReminderTypeLocalDataSourceImpl).bind<ReminderTypeLocalDataSource>()
-    singleOf(::TagLocalDataSourceImpl).bind<TagLocalDataSource>()
-    singleOf(::GoalLocalDataSourceImpl).bind<GoalLocalDataSource>()
-    singleOf(::NotificationLocalDataSourceImpl).bind<NotificationLocalDataSource>()
-    singleOf(::RemoteAuthDataSource).bind<AuthDataSource>()
-    single<TransactionsRepo> { TransactionsRepoImpl(get(), get(), get()) }
-    single<BudgetRepo> { BudgetRepoImpl(get(), get(), get(), get()) }
-    single<CategoryRepo> { CategoryRepoImpl(get()) }
-    single<DueRepo> { DueRepoImpl(get()) }
-    single<ReminderTypeRepo> { ReminderTypeRepoImpl(get()) }
-    single<TagRepo> { TagRepoImpl(get()) }
-    single<GoalRepo> { GoalRepoImpl(get(), get(), get()) }
-    single<AuthRepo> { AuthRepoImpl(get(), get()) }
-    single<NotificationRepo> { NotificationRepoImpl(get()) }
     single<List<BankIdentityParser>> {
         listOf(
             BankParser.SbiSmsParser(),
@@ -329,136 +261,13 @@ val appModule = module {
             BankParser.NsdlPaymentsBankSmsParser()
         )
     }
-    single { TransactionSmsParser(get()) }
-    single { SmsTransactionPipeline(get(), get(), get(), get(), get(), get()) }
-
-    factory { LoginUseCase(get()) }
-    factory { OnBoardingUseCase(get()) }
-    factory { AuthUseCases(get(), get()) }
-    factory { ArchiveBudgetUseCase(get()) }
-    factory { CreateBudgetUseCase(get()) }
-    factory { DeleteAllBudgetUseCase(get()) }
-    factory { DeleteBudgetUseCase(get()) }
-    factory { GetAllBudgetsUseCase(get()) }
-    factory { GetAllBudgetsWithDetailsUseCase(get()) }
-    factory { GetArchivedBudgetsUseCase(get()) }
-    factory { GetBudgetByIdUseCase(get()) }
-    factory { GetBudgetsInRangeUseCase(get()) }
-    factory { GetBudgetsUseCase(get()) }
-    factory { UpdateBudgetUseCase(get()) }
-    factory { SyncBudgetsUseCase(get(), get(), get()) }
-    factory { BudgetUseCases(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-
-    factory { CreateCategoryUseCase(get()) }
-    factory { DeleteAllCategoriesUseCase(get()) }
-    factory { DeleteCategoryUseCase(get()) }
-    factory { GetAllCategoriesWithSubCategoriesUseCase(get()) }
-    factory { GetCategoryByIdUseCase(get()) }
-    factory { GetMainCategoriesUseCase(get()) }
-    factory { GetSubCategoriesForParentUseCase(get()) }
-    factory { UpdateCategoryUseCase(get()) }
-    factory { GetAllCategoriesUseCase(get()) }
-    factory { DeleteOrphanedCategoriesUseCase(get()) }
-    factory { CategoryUseCases(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-
-    factory { DeleteDueUseCase(get()) }
-    factory { GetAllDuesUseCase(get()) }
-    factory { GetDueByIdUseCase(get()) }
-    factory { InsertDueUseCase(get()) }
-    factory { ScheduleReminderUseCase(get()) }
-    factory { UpdateDueUseCase(get()) }
-    factory { DeleteDuesByIdsUseCase(get()) }
-    factory { DueUseCases(get(), get(), get(), get(), get(), get(), get()) }
-
-    factory { CreateGoalUseCase(get()) }
-    factory { DeleteGoalUseCase(get()) }
-    factory { DeleteGoalsByIdsUseCase(get()) }
-    factory { GetAllGoalsUseCase(get()) }
-    factory { GetGoalByIdUseCase(get()) }
-    factory { UpdateGoalUseCase(get()) }
-    factory { SyncGoalsUseCase(get(), get(), get()) }
-    factory { GoalUseCases(get(), get(), get(), get(), get(), get(), get()) }
-    factory { CreateTransactionUseCase(get()) }
-    factory { DeleteTransactionUseCase(get()) }
-    factory { GetTransactionUseCase(get()) }
-    factory { ProcessIncomingSmsUseCase(get(), get(), get(), get(), get(), get(), get(), get()) }
-    factory { SyncSmsTransactionsUseCase(get(), get(), get()) }
-    factory { SyncAllUseCase(get(), get(), get(), get(), get(), get(), get()) }
-    factory { GetTotalSpentUseCase(get()) }
-    factory { GetCategorySpentUseCase(get()) }
-    factory { GetSubCategorySpentUseCase(get()) }
-    factory { GetSpentForCategoryByIdUseCase(get()) }
-    factory { GetRecentTransactionsUseCase(get()) }
-    factory { GetAllTransactionsInRangeUseCase(get()) }
-    factory { UpdateLocalTransactionUseCase(get()) }
-    factory { DeleteLocalTransactionsUseCase(get()) }
-    factory { DeleteLocalTransactionsByIdsUseCase(get()) }
-    factory { GetSpentForBudgetUseCase(get()) }
-    factory { TransactionUseCases(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-
-    factory { GetAllReminderTypesUseCase(get()) }
-    factory { InsertReminderTypeUseCase(get()) }
-    factory { DeleteReminderTypeUseCase(get()) }
-    factory { ReminderTypeUseCases(get(), get(), get()) }
-
-    factory { GetAllNotificationsUseCase(get()) }
-    factory { InsertNotificationUseCase(get()) }
-    factory { DeleteOldNotificationsUseCase(get()) }
-    factory { MarkNotificationAsReadUseCase(get()) }
-    factory { GetNotificationsInRangeUseCase(get()) }
-    factory { ClearAllNotificationsUseCase(get()) }
-    factory { NotificationUseCases(get(), get(), get(), get(), get(), get()) }
-
-    factory { GetAllTagsUseCase(get()) }
-    factory { GetTagByIdUseCase(get()) }
-    factory { CreateTagUseCase(get()) }
-    factory { UpdateTagUseCase(get()) }
-    factory { DeleteTagUseCase(get()) }
-    factory { DeleteTagsByIdsUseCase(get()) }
-    factory { TagUseCases(get(), get(), get(), get(), get(), get()) }
-    
-    single { UserPreferences(androidContext()) }
-    single { BudgetFluxDeck(get()) }
-    single { DuesFluxDeck() }
-    single { TagsFluxDeck(get()) }
-    single { TransactionsFluxDeck() }
-    single { CashFluxDeck() }
-    single { GoalFluxDeck() }
-    single { CashFlowFluxDeck(get(), get()) }
-    single { AuthFluxDeck() }
-    single { ProfileFluxDeck(get()) }
-    single { NotificationsFluxDeck(get()) }
-    single { HomeFluxDeck(get(), get(), get(), get(), get()) }
-
-    single(createdAtStart = true) { BudgetCoordinator(get(), get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { 
-        AuthCoordinator(
-            get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named("IODispatcher")), get(named("MainScope"))
-        ) 
+    factory { 
+        val resolver: ContactResolver = get()
+        ProcessIncomingSmsUseCase(get(), get(), get(), get(), get(), get(), get(), resolver::resolveContactName) 
     }
-    single(createdAtStart = true) { DuesCoordinator(get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { GoalCoordinator(get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { TagsCoordinator(get(), get(), get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { TransactionsCoordinator(get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { CashCoordinator(get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { ProfileCoordinator(get(), get(), get(), get(named("MainScope"))) }
-
-    viewModel { BudgetViewModel(get(), get()) }
-    viewModel { BudgetCreationViewModel(get(), get()) }
-    viewModel { BudgetSettingsViewModel(get(), get()) }
-    viewModel { DuesViewModel(get(), get()) }
-    viewModel { DuesCreationViewModel(get(), get()) }
-    viewModel { TagsViewModel(get(), get()) }
-    viewModel { TagsCreationViewModel(get(), get()) }
-    viewModel { HomeViewModel(get(), get(), get(), get()) }
-    viewModel { AuthViewModel(get(), get()) }
-    viewModel { TransactionsViewModel(get(), get()) }
-    viewModel { TransactionCreationViewModel(get(), get()) }
-    viewModel { DetailedTransactionViewModel(get(), get()) }
-    viewModel { GoalViewModel(get(), get()) }
-    viewModel { GoalCreationViewModel(get(), get()) }
-    viewModel { CashViewModel(get(), get()) }
-    viewModel { CashFlowViewModel(get()) }
-    viewModel { ProfileViewModel(get(), get()) }
-    viewModel { NotificationsViewModel(get()) }
+    factory { 
+        val resolver: ContactResolver = get()
+        SyncSmsTransactionsUseCase(get(), get(), resolver::resolveContactName) 
+    }
+    factory { TransactionUseCases(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

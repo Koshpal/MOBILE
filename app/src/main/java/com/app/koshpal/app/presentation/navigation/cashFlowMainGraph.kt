@@ -40,8 +40,7 @@ fun NavGraphBuilder.cashFlowMainGraph(
                 viewModel = viewModel,
                 onToPreviousScreen = { navController.popBackStack() },
                 onToIncoming = { navController.navigate(Screen.IncomingTransactions.route) },
-                onToOutgoing = { navController.navigate(Screen.OutgoingTransactions.route) },
-                onToAddTransaction = { navController.navigate(Screen.CreateTransaction.route) }
+                onToOutgoing = { navController.navigate(Screen.OutgoingTransactions.route) }
             )
         }
 

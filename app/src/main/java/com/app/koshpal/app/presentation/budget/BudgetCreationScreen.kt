@@ -73,6 +73,7 @@ fun BudgetCreationScreen(
     val selectedType by viewModel.budgetType.collectAsStateWithLifecycle()
     val startDate by viewModel.startDate.collectAsStateWithLifecycle()
     val endDate by viewModel.endDate.collectAsStateWithLifecycle()
+    val isRepeating by viewModel.isRepeating.collectAsStateWithLifecycle()
     val allocations by viewModel.allocations.collectAsStateWithLifecycle(emptyList())
     val overallAmount by viewModel.overallAmountString.collectAsStateWithLifecycle("")
     val overAllocatedAmount by viewModel.overAllocatedAmount.collectAsStateWithLifecycle(0.0)
@@ -367,10 +368,12 @@ fun BudgetCreationScreen(
                         startDate = startDate,
                         endDate = endDate,
                         budgetType = selectedType,
+                        isRepeating = isRepeating,
                         updateTitle = updateTitle,
                         updatePeriod = updatePeriod,
                         updateStartDate = updateStartDate,
                         updateEndDate = { viewModel.updateEndDate(it) },
+                        updateIsRepeating = { viewModel.updateIsRepeating(it) },
                         titleSuggestions = titleSuggestions
                     )
                     3 -> BudgetPlanner(

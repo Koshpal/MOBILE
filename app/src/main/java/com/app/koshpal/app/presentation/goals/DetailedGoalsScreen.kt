@@ -1,5 +1,7 @@
 package com.app.koshpal.app.presentation.goals
 
+import com.app.koshpal.app.presentation.util.toDrawableResId
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.app.koshpal.R
 import com.app.koshpal.app.domain.model.*
+import com.app.koshpal.app.presentation.goals.component.SavingsSummaryCard
 import com.app.koshpal.app.viewmodels.goalsviewmodel.GoalViewModel
 import com.app.koshpal.ui.theme.Jakarta
 import com.app.koshpal.ui.theme.Outfit
@@ -112,8 +115,8 @@ fun DetailedGoalsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.settings_24px),
-                        contentDescription = "Settings",
+                        painter = painterResource(id = R.drawable.edit_24px),
+                        contentDescription = "Edit Goal",
                         tint = goalColor,
                         modifier = Modifier.size(24.dp)
                     )
@@ -280,6 +283,10 @@ fun DetailedGoalsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+                item {
+                    val summary = viewModel.getGoalSavingsSummary(currentGoal)
+                    SavingsSummaryCard(summary = summary)
                 }
                 item {
                     Spacer(modifier = Modifier.height(76.dp))

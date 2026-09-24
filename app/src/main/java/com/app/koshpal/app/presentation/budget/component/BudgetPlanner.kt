@@ -21,7 +21,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -30,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,9 +47,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.app.koshpal.app.domain.model.*
-import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
+import com.app.koshpal.app.domain.model.Category
+import com.app.koshpal.app.domain.model.CategoryAllocationUi
+import com.app.koshpal.app.domain.model.getInitials
+import com.app.koshpal.app.domain.model.toColorLong
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.app.viewmodels.budgetviewmodel.BudgetCreationViewModel
 import com.app.koshpal.ui.theme.Jakarta
 import com.app.koshpal.ui.theme.Outfit
@@ -48,10 +61,10 @@ import com.app.koshpal.ui.theme.Outfit
 fun BudgetPlanner(
     overallAmount: String,
     onOverallAmountChange: (String) -> Unit,
-    allocations: List<CategoryAllocationUiState>,
+    allocations: List<CategoryAllocationUi>,
     onCategoryAmountChange: (String, String) -> Unit,
     onRemoveCategory: (Category) -> Unit = {},
-    onCategoryClick: (CategoryAllocationUiState) -> Unit = {},
+    onCategoryClick: (CategoryAllocationUi) -> Unit = {},
     showCategoryDialog: MutableState<Boolean>,
     overAllocatedAmount: Double,
     viewModel: BudgetCreationViewModel,
@@ -310,10 +323,8 @@ fun BudgetRow(
                             modifier = Modifier.size(18.dp)
                         )
                     } else {
-                        val words = label.trim().split("\\s+".toRegex())
-                        val initials = if (words.size >= 2) "${words[0].first()}${words[1].first()}" else "${words[0].first()}"
                         Text(
-                            text = initials.uppercase(),
+                            text = label.getInitials(),
                             color = iconTint,
                             fontFamily = Jakarta,
                             fontSize = 11.sp,

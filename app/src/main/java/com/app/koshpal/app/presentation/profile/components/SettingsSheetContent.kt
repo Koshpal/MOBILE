@@ -1,5 +1,7 @@
 package com.app.koshpal.app.presentation.profile.components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -20,13 +23,35 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.koshpal.R
 import com.app.koshpal.app.presentation.globalcomponents.FilterToggleCard
+import com.app.koshpal.app.presentation.profile.LegalDocumentScreen
 import com.app.koshpal.app.viewmodels.profileviewmodel.ProfileViewModel
 import com.app.koshpal.ui.theme.Jakarta
 import com.app.koshpal.ui.theme.Outfit
 
 @Composable
-fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
+fun SettingsSheetContent(
+    viewModel: ProfileViewModel,
+    onClose: () -> Unit,
+    onToLegalDocument: (String) -> Unit = {}
+) {
     val isBiometricEnabled by viewModel.isBiometricEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val context = LocalContext.current
+    var activeDialogType by remember { mutableStateOf<String?>(null) }
+
+    val openPlayStore = {
+        val packageName = context.packageName
+        val playStoreIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        }
+        try {
+            context.startActivity(playStoreIntent)
+        } catch (_: Exception) {
+            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+            try {
+                context.startActivity(webIntent)
+            } catch (_: Exception) {}
+        }
+    }
 
     Column(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -70,13 +95,12 @@ fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
             fontFamily = Outfit
         )
         Spacer(modifier = Modifier.height(12.dp))
-        val context = androidx.compose.ui.platform.LocalContext.current
         Card(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
-            onClick = { viewModel.openSupport(context) }
+            onClick = { activeDialogType = "support" }
         ) {
             Row(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
@@ -147,7 +171,7 @@ fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
-            onClick = {}
+            onClick = { openPlayStore() }
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -176,7 +200,7 @@ fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
-            onClick = { viewModel.openFeedback(context) }
+            onClick = { openPlayStore() }
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -200,63 +224,61 @@ fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
-        var activeDialogType by remember { mutableStateOf<String?>(null) }
 
         if (activeDialogType != null) {
-            val (dialogTitle, dialogText) = when (activeDialogType) {
-                "terms" -> "Terms of Services" to """
-                    1. Personal Use Agreement: Koshpal is a financial management tool for tracking personal spending, budgets, and goals.
-                    
-                    2. User Security Responsibility: You are responsible for keeping your device secure and configuring authentication (PIN/Biometrics).
-                    
-                    3. Informational Purposes: Financial insights and automated categorizations are provided for personal informational reference.
-                """.trimIndent()
-                
-                "privacy" -> "Privacy Policy" to """
-                    1. 100% Local Processing: Financial SMS messages and saved contacts are processed entirely on your device. Personal messages and address book data are never transmitted off-device.
-                    
-                    2. Encrypted Synchronization: Account details, budgets, and goals are synced over secure HTTPS connections (api.koshpal.com).
-                    
-                    3. No Third-Party Data Sharing: Koshpal does not sell, rent, or trade your data or transaction logs with third parties or advertisers.
-                """.trimIndent()
-                
-                "compliance" -> "Data Compliance & Safety" to """
-                    1. Google Play Policy Compliance: Koshpal complies with Google Play Developer Policies regarding Financial Data, Prominent Disclosure, and User Privacy.
-                    
-                    2. Limited Use Permissions: SMS permissions (READ_SMS, RECEIVE_SMS) and Contacts access (READ_CONTACTS) are requested solely to organize personal financial logs locally.
-                    
-                    3. Security Controls: Network connections enforce strict TLS security and block user-installed proxy CA certificates.
-                """.trimIndent()
-                
-                else -> "" to ""
-            }
+            when (activeDialogType) {
+                "support" -> {
+                    AlertDialog(
+                        onDismissRequest = { activeDialogType = null },
+                        title = {
+                            Text(
+                                text = "Customer Support",
+                                fontFamily = Jakarta,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = "Need help or have questions regarding your account or financial logs?\n\nContact Koshpal's official support team at support@koshpal.com. Our team typically responds within 24 hours.",
+                                fontFamily = Outfit,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    activeDialogType = null
+                                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                        data = Uri.parse("mailto:support@koshpal.com")
+                                        putExtra(Intent.EXTRA_SUBJECT, "Koshpal Support Request")
+                                    }
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (_: Exception) {}
+                                }
+                            ) {
+                                Text("Send Email", fontFamily = Jakarta, fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { activeDialogType = null }) {
+                                Text("Close", fontFamily = Jakarta)
+                            }
+                        },
+                        shape = RoundedCornerShape(20.dp),
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                }
 
-            AlertDialog(
-                onDismissRequest = { activeDialogType = null },
-                title = {
-                    Text(
-                        text = dialogTitle,
-                        fontFamily = Jakarta,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge
+                "terms", "privacy", "compliance" -> {
+                    LegalDocumentScreen(
+                        document = activeDialogType!!,
+                        onNavigateBack = { activeDialogType = null }
                     )
-                },
-                text = {
-                    Text(
-                        text = dialogText,
-                        fontFamily = Outfit,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                confirmButton = {
-                    TextButton(onClick = { activeDialogType = null }) {
-                        Text("Got It", fontFamily = Jakarta, fontWeight = FontWeight.Bold)
-                    }
-                },
-                shape = RoundedCornerShape(20.dp),
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+                }
+            }
         }
 
         Row(
@@ -269,7 +291,7 @@ fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 fontFamily = Outfit,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickable { activeDialogType = "terms" }
+                modifier = Modifier.clickable { onToLegalDocument("terms") }
             )
             Text(
                 text = "  •  ",
@@ -282,7 +304,7 @@ fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 fontFamily = Outfit,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickable { activeDialogType = "privacy" }
+                modifier = Modifier.clickable { onToLegalDocument("privacy") }
             )
             Text(
                 text = "  •  ",
@@ -295,7 +317,7 @@ fun SettingsSheetContent(viewModel: ProfileViewModel, onClose: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 fontFamily = Outfit,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickable { activeDialogType = "compliance" }
+                modifier = Modifier.clickable { onToLegalDocument("compliance") }
             )
         }
         Spacer(modifier = Modifier.height(32.dp))

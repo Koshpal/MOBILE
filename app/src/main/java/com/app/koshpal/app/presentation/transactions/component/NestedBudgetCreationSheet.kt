@@ -46,6 +46,7 @@ fun NestedBudgetCreationSheet(
     val startDate by viewModel.startDate.collectAsStateWithLifecycle()
     val endDate by viewModel.endDate.collectAsStateWithLifecycle()
     val budgetType by viewModel.budgetType.collectAsStateWithLifecycle()
+    val isRepeating by viewModel.isRepeating.collectAsStateWithLifecycle()
     val titleSuggestions by viewModel.titleSuggestions.collectAsStateWithLifecycle()
     
     val overallAmount by viewModel.overallAmountString.collectAsStateWithLifecycle("")
@@ -219,10 +220,12 @@ fun NestedBudgetCreationSheet(
                         startDate = startDate,
                         endDate = endDate,
                         budgetType = budgetType,
+                        isRepeating = isRepeating,
                         updateTitle = { viewModel.updateTitle(it) },
                         updatePeriod = { viewModel.updatePeriod(it) },
                         updateStartDate = { viewModel.updateStartDate(it) },
                         updateEndDate = { viewModel.updateEndDate(it) },
+                        updateIsRepeating = { viewModel.updateIsRepeating(it) },
                         titleSuggestions = titleSuggestions
                     )
                     Spacer(modifier = Modifier.height(24.dp))

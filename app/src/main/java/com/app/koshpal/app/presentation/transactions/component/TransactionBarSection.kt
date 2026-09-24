@@ -1,5 +1,7 @@
 package com.app.koshpal.app.presentation.transactions.component
 
+import com.app.koshpal.app.presentation.util.toDrawableResId
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut

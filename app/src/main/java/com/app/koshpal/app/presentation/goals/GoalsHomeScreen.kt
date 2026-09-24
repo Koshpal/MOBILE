@@ -361,7 +361,7 @@ fun GoalsHomeScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    painter = painterResource(id = if (isEditing) R.drawable.close_24px else R.drawable.edit_24px),
+                                    painter = painterResource(id = if (isEditing) R.drawable.close_24px else R.drawable.more_vert_24px),
                                     contentDescription = "Edit Goals",
                                     tint = MaterialTheme.colorScheme.onPrimary
                                 )
@@ -503,7 +503,7 @@ fun GoalsHomeScreen(
                             if (totalTarget > 0) {
                                 goals.map { goal ->
                                     RingChartSegment(
-                                        color = Color(goal.colorHex.toColorLong()),
+                                        colorHex = goal.colorHex,
                                         percentage = (goal.targetAmount / totalTarget).toFloat()
                                     )
                                 }

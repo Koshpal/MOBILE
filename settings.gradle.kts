@@ -24,4 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Koshpal"
 include(":app")
- 
+include(":shared")

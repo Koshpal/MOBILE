@@ -4,16 +4,38 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,12 +48,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.koshpal.R
-import com.app.koshpal.app.domain.model.Category
-import com.app.koshpal.app.domain.model.CategoryAllocationUiState
+import com.app.koshpal.app.domain.model.CategoryAllocationUi
 import com.app.koshpal.app.domain.model.availableCategoryColors
 import com.app.koshpal.app.domain.model.availableCategoryIcons
 import com.app.koshpal.app.domain.model.toColorLong
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.ui.theme.Outfit
 
 @Composable
@@ -46,7 +67,7 @@ fun CreateCategory(
     activeColor: Color,
     categoryType: String = "category",
     onCreateClick: () -> Unit = {},
-    subAllocations: List<CategoryAllocationUiState> = emptyList(),
+    subAllocations: List<CategoryAllocationUi> = emptyList(),
     onCategoryAmountChange: (String, String) -> Unit = { _, _ -> },
     onRemoveSubCategory: (String) -> Unit = {},
     isError: Boolean = false,
@@ -222,51 +243,53 @@ fun CreateCategory(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     subAllocations.forEach { item ->
-                        val subColor = try {
-                            Color(item.category.colorHex.toColorLong())
-                        } catch (_: Exception) {
-                            effectiveActiveColor
-                        }
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            initialValue = SwipeToDismissBoxValue.Settled,
-                            confirmValueChange = {
-                                if (it != SwipeToDismissBoxValue.Settled) {
-                                    onRemoveSubCategory(item.category.id)
-                                    true
-                                } else false
+                        key(item.category.id) {
+                            val subColor = try {
+                                Color(item.category.colorHex.toColorLong())
+                            } catch (_: Exception) {
+                                effectiveActiveColor
                             }
-                        )
-
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            backgroundContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .background(MaterialTheme.colorScheme.errorContainer),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.delete_24px),
-                                        contentDescription = "Delete",
-                                        tint = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.padding(end = 16.dp)
-                                    )
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                initialValue = SwipeToDismissBoxValue.Settled,
+                                confirmValueChange = {
+                                    if (it != SwipeToDismissBoxValue.Settled) {
+                                        onRemoveSubCategory(item.category.id)
+                                        false
+                                    } else false
                                 }
-                            }
-                        ) {
-                            BudgetRow(
-                                icon = item.category.iconResId?.toDrawableResId(),
-                                iconBackground = subColor.copy(alpha = 0.2f),
-                                iconTint = subColor,
-                                label = item.category.title,
-                                amount = item.amountString,
-                                onAmountChange = { newText ->
-                                    onCategoryAmountChange(item.category.id, newText)
-                                },
-                                isError = isError
                             )
+
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                backgroundContent = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(MaterialTheme.colorScheme.errorContainer),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.delete_24px),
+                                            contentDescription = "Delete",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.padding(end = 16.dp)
+                                        )
+                                    }
+                                }
+                            ) {
+                                BudgetRow(
+                                    icon = item.category.iconResId?.toDrawableResId(),
+                                    iconBackground = subColor.copy(alpha = 0.2f),
+                                    iconTint = subColor,
+                                    label = item.category.title,
+                                    amount = item.amountString,
+                                    onAmountChange = { newText ->
+                                        onCategoryAmountChange(item.category.id, newText)
+                                    },
+                                    isError = isError
+                                )
+                            }
                         }
                     }
                 }

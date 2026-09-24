@@ -24,7 +24,7 @@ import com.app.koshpal.R
 import coil3.compose.AsyncImage
 import com.app.koshpal.app.domain.model.Goal
 import com.app.koshpal.app.domain.model.toColorLong
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.app.presentation.globalcomponents.SwipeOrHoldActions
 import com.app.koshpal.core.presentation.util.truncateTitle
 import com.app.koshpal.ui.theme.Jakarta

@@ -12,12 +12,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
-import com.app.koshpal.app.presentation.globalcomponents.FilterToggleCard
 import com.app.koshpal.core.data.entities.enums.BudgetPeriod
 import com.app.koshpal.ui.theme.Outfit
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import kotlinx.datetime.LocalDate
+
+private val MONTH_NAMES = arrayOf(
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +58,7 @@ fun GoalFilterSection(
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                BudgetPeriod.entries.forEach { period ->
+                BudgetPeriod.entries.filter { it != BudgetPeriod.UNKNOWN }.forEach { period ->
                     val isSelected = selectedPeriod == period
                     Card(
                         modifier = Modifier.weight(1f),
@@ -113,7 +115,7 @@ fun GoalFilterSection(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = selectedDate?.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)) ?: "Select a date",
+                    text = selectedDate?.let { "${MONTH_NAMES[it.monthNumber - 1]} ${it.year}" } ?: "Select a date",
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (selectedDate != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -130,7 +132,8 @@ fun GoalFilterSection(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let {
-                        onDateSelected(LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000)))
+                        val days = (it / (24 * 60 * 60 * 1000)).toInt()
+                        onDateSelected(LocalDate.fromEpochDays(days))
                     }
                     showDatePicker = false
                 }) {

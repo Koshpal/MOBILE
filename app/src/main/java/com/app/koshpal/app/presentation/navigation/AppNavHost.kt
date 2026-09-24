@@ -136,7 +136,7 @@ fun AppNavHost(
             MainHomeScreen(
                 viewModel = viewModel,
                 onToCreateBudget = { navController.navigate(Screen.CreateBudget.route) },
-                onToProfile = { navController.navigate(Screen.Profile.route) },
+                onToProfile = { navController.navigate(Screen.Graph.PROFILE) },
                 onToNotifications = { navController.navigate(Screen.Notifications.route) },
                 onToBudgetDetails = { budgetId ->
                     budgetFluxDeck.updateClickedBudgetId(budgetId)
@@ -233,13 +233,14 @@ fun AppNavHost(
             )
         }
 
-        composable(Screen.Profile.route) {
-            val viewModel: ProfileViewModel = koinViewModel()
-            ProfileScreen(
-                viewModel = viewModel,
-                onToPreviousScreen = { navController.popBackStack() }
-            )
-        }
+        profileMainGraph(
+            navController = navController,
+            modifier = Modifier,
+            enter = enter,
+            exit = exit,
+            popEnter = popEnter,
+            popExit = popExit
+        )
 
         composable(Screen.Notifications.route) {
             val viewModel: NotificationsViewModel = koinViewModel()

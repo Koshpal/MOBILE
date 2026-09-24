@@ -1,5 +1,7 @@
 package com.app.koshpal.app.presentation.tags
 
+import com.app.koshpal.app.presentation.util.toDrawableResId
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -380,17 +382,15 @@ fun DetailedTagScreen(
                                 RingChart(
                                     segments = if (analytics!!.categories.isNotEmpty()) {
                                         analytics!!.categories.map { catAnalytic ->
-                                            val catColor = try { Color(catAnalytic.category.colorHex.toColorLong()) } catch (_: Exception) { baseColor }
                                             RingChartSegment(
-                                                color = catColor, 
+                                                colorHex = catAnalytic.category.colorHex, 
                                                 percentage = if (analytics!!.totalAllotted > 0) (catAnalytic.spent / analytics!!.totalAllotted).toFloat() else 0f
                                             )
                                         }
                                     } else {
                                         analytics!!.goals.map { goal ->
-                                            val goalColor = try { Color(goal.colorHex.toColorLong()) } catch (_: Exception) { baseColor }
                                             RingChartSegment(
-                                                color = goalColor,
+                                                colorHex = goal.colorHex,
                                                 percentage = if (analytics!!.totalAllotted > 0) (goal.savedAmount / analytics!!.totalAllotted).toFloat() else 0f
                                             )
                                         }

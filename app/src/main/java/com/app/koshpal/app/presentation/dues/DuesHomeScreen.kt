@@ -322,7 +322,7 @@ fun DuesHomeScreen(
                             ) {
                                 Icon(
                                     tint = MaterialTheme.colorScheme.onPrimary,
-                                    painter = painterResource(id = if (isEditing) R.drawable.close_24px else R.drawable.edit_24px),
+                                    painter = painterResource(id = if (isEditing) R.drawable.close_24px else R.drawable.more_vert_24px),
                                     contentDescription = "Edit"
                                 )
                             }

@@ -34,7 +34,7 @@ import com.app.koshpal.app.Events
 import com.app.koshpal.app.domain.model.Tag
 import com.app.koshpal.app.domain.model.getInitials
 import com.app.koshpal.app.domain.model.toColorLong
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.ui.theme.Jakarta
 import com.app.koshpal.app.presentation.budget.component.dialog.MonthlyStartDatePickerDialog
 import androidx.compose.foundation.layout.FlowRow

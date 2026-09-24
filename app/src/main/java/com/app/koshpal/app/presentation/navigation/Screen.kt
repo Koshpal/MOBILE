@@ -25,6 +25,9 @@ sealed class Screen(
     data object IncomingTransactions : Screen("incoming_transactions")
     data object OutgoingTransactions : Screen("outgoing_transactions")
     data object Profile : Screen("profile")
+    data object LegalDocument : Screen("legal_document/{document}") {
+        fun createRoute(document: String) = "legal_document/$document"
+    }
     data object Notifications : Screen("notifications")
 
     data object Gateway : Screen("gateway")
@@ -41,5 +44,6 @@ sealed class Screen(
         const val GOALS = "goalsMainGraph"
         const val CASH = "cashMainGraph"
         const val CASH_FLOW = "cashFlowMainGraph"
+        const val PROFILE = "profileMainGraph"
     }
 }

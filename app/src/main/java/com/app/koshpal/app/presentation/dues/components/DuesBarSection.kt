@@ -28,7 +28,7 @@ import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
 import com.app.koshpal.app.domain.model.Due
 import com.app.koshpal.app.domain.model.toColorLong
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.core.presentation.util.toDisplayDate
 import com.app.koshpal.core.presentation.util.truncateTitle
 import com.app.koshpal.app.presentation.globalcomponents.SwipeOrHoldActions

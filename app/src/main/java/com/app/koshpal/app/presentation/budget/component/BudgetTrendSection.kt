@@ -1,15 +1,31 @@
 package com.app.koshpal.app.presentation.budget.component
 
-import com.app.koshpal.app.domain.model.*
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -17,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -26,17 +43,29 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
+import com.app.koshpal.app.domain.model.Budget
 import com.app.koshpal.ui.theme.LocalExtendedColors
 import com.app.koshpal.ui.theme.Outfit
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
-fun BudgetTrendSection() {
-    var isExpanded by remember { mutableStateOf(false) }
+fun BudgetTrendSection(
+    modifier: Modifier = Modifier,
+    budget: Budget? = null,
+    totalSpent: Double = 0.0,
+) {
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
+
+    val totalAmount = budget?.amount ?: 5000.0
+    val formatter = remember { NumberFormat.getNumberInstance(Locale.forLanguageTag("en-IN")) }
+    val spentText = "₹${formatter.format(totalSpent.toLong())}"
+    val plannedText = " / ₹${formatter.format(totalAmount.toLong())}"
+    val percentage = if (totalAmount > 0) ((totalSpent / totalAmount) * 100).toInt() else 0
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { isExpanded = !isExpanded },
         shape = RoundedCornerShape(16.dp),
@@ -58,7 +87,7 @@ fun BudgetTrendSection() {
                     style = MaterialTheme.typography.titleMedium,
                     fontFamily = Outfit,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.outline
                 )
                 Icon(
                     painter = painterResource(id = if (isExpanded) R.drawable.keyboard_arrow_up_24px else R.drawable.keyboard_arrow_down_24px),
@@ -73,22 +102,25 @@ fun BudgetTrendSection() {
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 ) {
-                    TrendHeader()
+                    TrendHeader(percentage = percentage)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                append("₹4,000")
+                                append(spentText)
                             }
                             withStyle(style = SpanStyle(color = Color.Gray)) {
-                                append(" / ₹5,000")
+                                append(plannedText)
                             }
                         },
                         fontFamily = Outfit,
                         fontSize = 18.sp
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-                    BudgetTrendChart(LocalExtendedColors.current.success)
+                    BudgetTrendChart(
+                        successColor = LocalExtendedColors.current.success,
+                        percentage = percentage
+                    )
                 }
             }
         }
@@ -96,7 +128,7 @@ fun BudgetTrendSection() {
 }
 
 @Composable
-private fun TrendHeader() {
+private fun TrendHeader(percentage: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -111,15 +143,15 @@ private fun TrendHeader() {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "+11.2%",
+                text = "$percentage%",
                 fontFamily = Outfit,
                 fontSize = 12.sp,
-                color = LocalExtendedColors.current.success,
+                color = if (percentage >= 100) MaterialTheme.colorScheme.error else LocalExtendedColors.current.success,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "vs last month",
+                text = "used",
                 fontFamily = Outfit,
                 fontSize = 10.sp,
                 color = Color.Gray
@@ -143,14 +175,15 @@ private fun TrendHeader() {
 }
 
 @Composable
-private fun BudgetTrendChart(successColor: Color) {
+private fun BudgetTrendChart(successColor: Color, percentage: Int) {
     val textMeasurer = rememberTextMeasurer()
     val primaryColor = MaterialTheme.colorScheme.primary
     val gridColor = Color.LightGray.copy(alpha = 0.5f)
     
     val labels = listOf("10k", "5k", "1k", "500", "100", "0")
     val months = listOf("Feb'26", "Mar'26", "Apr'26", "May'26", "Jun'26")
-    val values = listOf(0.15f, 0.85f, 0.05f, 0.05f, 0.05f)
+    val activeRatio = (percentage / 100f).coerceIn(0.05f, 1.0f)
+    val values = listOf(0.15f, 0.45f, 0.30f, 0.50f, activeRatio)
     
     val outfitStyle = TextStyle(
         fontFamily = Outfit,
@@ -198,7 +231,7 @@ private fun BudgetTrendChart(successColor: Color) {
             val x = (index + 1) * barSpacing
             val barHeight = values[index] * chartHeight
             
-            val isHighlighted = index == 1
+            val isHighlighted = index == months.size - 1
             val color = if (isHighlighted) primaryColor else primaryColor.copy(alpha = 0.3f)
             
             drawRoundRect(
@@ -209,7 +242,7 @@ private fun BudgetTrendChart(successColor: Color) {
             )
             
             if (isHighlighted) {
-                val bubbleWidth = 30.dp.toPx()
+                val bubbleWidth = 34.dp.toPx()
                 val bubbleHeight = 18.dp.toPx()
                 drawRoundRect(
                     color = primaryColor.copy(alpha = 0.1f),
@@ -218,7 +251,7 @@ private fun BudgetTrendChart(successColor: Color) {
                     cornerRadius = CornerRadius(4.dp.toPx(), 4.dp.toPx())
                 )
                 
-                val percentText = "80%"
+                val percentText = "$percentage%"
                 val textLayout = textMeasurer.measure(
                     text = percentText,
                     style = outfitStyle.copy(color = primaryColor, fontWeight = FontWeight.Bold)

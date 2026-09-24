@@ -37,7 +37,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
-    onToPreviousScreen: () -> Unit
+    onToPreviousScreen: () -> Unit,
+    onToLegalDocument: (String) -> Unit = {}
 ) {
     val firstName by viewModel.firstName.collectAsStateWithLifecycle(initialValue = "")
     val phone by viewModel.phone.collectAsStateWithLifecycle(initialValue = "")
@@ -95,9 +96,18 @@ fun ProfileScreen(
         sheetContainerColor = Color.White,
         sheetContent = {
             when (activeSheet) {
-                "settings" -> SettingsSheetContent(viewModel, onClose = {
-                    scope.launch { scaffoldState.bottomSheetState.hide() }
-                })
+                "settings" -> SettingsSheetContent(
+                    viewModel = viewModel,
+                    onClose = {
+                        scope.launch { scaffoldState.bottomSheetState.hide() }
+                    },
+                    onToLegalDocument = { doc ->
+                        scope.launch {
+                            scaffoldState.bottomSheetState.hide()
+                            onToLegalDocument(doc)
+                        }
+                    }
+                )
                 "notifications" -> NotificationsSheetContent(viewModel, onClose = { 
                     scope.launch { scaffoldState.bottomSheetState.hide() }
                 })

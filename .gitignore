@@ -3,6 +3,7 @@
 *.aar
 *.ap_
 *.aab
+app/release/
 
 # Files for the ART/DALVIK VM
 *.dex
@@ -16,12 +17,26 @@
 /out/
 /build
 /app/build
+/shared/build
 .gradle/
 .gradle_home/
 .artifacts/
 KOSHPAL_DEEP_DIVE/
 KOTLIN_DEEP_DIVE/
 MFR_DEEP_DIVE/
+
+# Kotlin Multiplatform build & metadata
+.kotlin/
+.kotlin/metadata/
+
+# Xcode & iOS build artifacts
+iosApp/DerivedData/
+DerivedData/
+*.xcresult
+build.xcresult/
+*.xcuserdata
+*.xcworkspace/xcuserdata/
+.swiftpm/
 
 # Android Studio / IntelliJ IDEA
 *.iml

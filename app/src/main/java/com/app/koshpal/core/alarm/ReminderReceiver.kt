@@ -14,8 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 class ReminderReceiver : BroadcastReceiver(), KoinComponent {
 
     private val notificationHelper: NotificationHelper by inject()
@@ -62,7 +64,7 @@ class ReminderReceiver : BroadcastReceiver(), KoinComponent {
                     val due = result.data
                     notificationUseCases.insertNotification(
                         Notification(
-                            id = UUID.randomUUID().toString(),
+                            id = Uuid.random().toString(),
                             type = NotificationType.DUE_REMINDER,
                             title = "Reminder Due",
                             message = "${due?.title ?: dueTitle} is due today.",
@@ -97,7 +99,7 @@ class ReminderReceiver : BroadcastReceiver(), KoinComponent {
                             if (isRecurring) {
                                 val nextDateStr = dueUseCases.scheduleReminder.formatDisplayDate(nextTime)
                                 val newUpcoming = due.copy(
-                                    id = UUID.randomUUID().toString(),
+                                    id = Uuid.random().toString(),
                                     date = nextDateStr,
                                     reminderTime = nextTime,
                                     isCompleted = false,
@@ -134,7 +136,7 @@ class ReminderReceiver : BroadcastReceiver(), KoinComponent {
                     if (isRecurring) {
                         val nextDateStr = dueUseCases.scheduleReminder.formatDisplayDate(nextTime)
                         val newUpcoming = due.copy(
-                            id = UUID.randomUUID().toString(),
+                            id = Uuid.random().toString(),
                             date = nextDateStr,
                             reminderTime = nextTime,
                             isCompleted = false,

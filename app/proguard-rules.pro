@@ -1,59 +1,81 @@
-# --- Koshpal Advanced ProGuard Rules ---
+# ============================================================
+# KOSHPAL - Release R8 / ProGuard Rules
 
-# 1. Identity & Integrity
--keepattributes Signature, *Annotation*, EnclosingMethod, InnerClasses, SourceFile, LineNumberTable
+# ------------------------------------------------------------
+# 1. Attributes required by reflection / serialization / Room
+# ------------------------------------------------------------
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
 
-# 2. Domain Models & DTOs (The "ApplyWisee" Strategy)
-# We must keep fields and constructors to prevent Serialization/Room crashes.
--keepclassmembers class com.app.koshpal.app.domain.model.** {
-    <fields>;
-    <init>(...);
-}
 
--keepclassmembers class com.app.koshpal.core.data.remote.dto.** {
-    <fields>;
-    <init>(...);
-}
-
-# 3. Mappers & Enums
-# Preservation of mappers is critical for the "Me/Unknown" identity resolution.
--keepclassmembers class com.app.koshpal.app.data.mapper.** {
-    <fields>;
-    <methods>;
-}
-
--keepclassmembers enum * {
-    **[] $VALUES;
-    public *;
-}
-
-# 4. Kotlin Serialization (Ktor)
--keep,allowobfuscation,allowoptimization @kotlinx.serialization.Serializable class * {
+# ------------------------------------------------------------
+# 2. Kotlin Serialization
+# Keep generated serializers / serialized model members working.
+# Allow class names themselves to be obfuscated.
+# ------------------------------------------------------------
+-keep,allowoptimization,allowobfuscation @kotlinx.serialization.Serializable class * {
     <fields>;
 }
--keepclassmembers class * {
+
+-keepclassmembers,allowoptimization,allowobfuscation class * {
     @kotlinx.serialization.SerialName <fields>;
 }
 
-# 5. Room Database
+
+# ------------------------------------------------------------
+# 3. Room
+# Keep generated database/DAO implementations and annotations
+# required for Room runtime behavior.
+# ------------------------------------------------------------
 -keep class * extends androidx.room.RoomDatabase
 -keep class * extends androidx.room.Entity
 -keep class * extends androidx.room.Dao
 
-# 6. Koin Dependency Injection
--keepclassmembers class * {
-    public <init>(...);
+
+# ------------------------------------------------------------
+# 4. Enums
+# Preserve enum values needed at runtime while allowing
+# surrounding code to be optimized/obfuscated.
+# ------------------------------------------------------------
+-keepclassmembers,allowoptimization class * extends java.lang.Enum {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
 
-# 7. Network (Ktor & OkHttp)
--keep class io.ktor.** { *; }
--keep class okhttp3.** { *; }
--dontwarn io.ktor.**
--dontwarn okhttp3.**
 
-# 8. Timber Strip
+# ------------------------------------------------------------
+# 5. App/domain models
+# Preserve members needed by serialization/Room without keeping
+# the entire classes/names unobfuscated.
+# ------------------------------------------------------------
+-keepclassmembers,allowoptimization,allowobfuscation class com.app.koshpal.app.domain.model.** {
+    <fields>;
+}
+
+-keepclassmembers,allowoptimization,allowobfuscation class com.app.koshpal.core.data.remote.dto.** {
+    <fields>;
+}
+
+# ------------------------------------------------------------
+# 6. DO NOT globally keep all Ktor / OkHttp classes.
+#
+# Their libraries provide their own consumer rules.
+# Keeping entire libraries defeats useful R8 optimization/
+# obfuscation and is unnecessary unless a concrete runtime issue
+# is demonstrated.
+# ------------------------------------------------------------
+
+
+# ------------------------------------------------------------
+# 7. Release logging
+# Remove Timber debug/info/verbose calls from optimized release.
+# Do not remove warning/error logging automatically.
+# ------------------------------------------------------------
 -assumenosideeffects class timber.log.Timber {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
 }
+

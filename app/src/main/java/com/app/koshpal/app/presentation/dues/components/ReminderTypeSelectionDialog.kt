@@ -22,7 +22,7 @@ import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
 import com.app.koshpal.app.domain.model.ReminderType
 import com.app.koshpal.app.domain.model.toColorLong
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 
 @Composable
 fun ReminderTypeSelectionDialog(

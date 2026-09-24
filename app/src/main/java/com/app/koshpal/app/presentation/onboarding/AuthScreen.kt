@@ -1,6 +1,7 @@
 package com.app.koshpal.app.presentation.onboarding
 
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +24,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.rememberCoroutineScope
+import com.app.koshpal.app.data.UserPreferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,49 +36,46 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.ImageLoader
+import coil3.compose.AsyncImage
+import coil3.gif.GifDecoder
+import coil3.request.ImageRequest
 import com.app.koshpal.R
+import com.app.koshpal.app.Events
+import com.app.koshpal.app.viewmodels.authviewmodel.AuthViewModel
+import com.app.koshpal.core.presentation.util.ObserveAsEvents
 import com.app.koshpal.ui.theme.BrandingBlue
 import com.app.koshpal.ui.theme.Jakarta
 import com.app.koshpal.ui.theme.Outfit
+import com.app.koshpal.ui.theme.SetStatusBarAppearance
 import dev.chrisbanes.haze.blur.HazeColorEffect
 import dev.chrisbanes.haze.blur.blurEffect
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import coil3.ImageLoader
-import coil3.compose.AsyncImage
-import coil3.gif.GifDecoder
-import coil3.request.ImageRequest
-import com.app.koshpal.app.Events
-import com.app.koshpal.app.viewmodels.authviewmodel.AuthViewModel
-import com.app.koshpal.core.domain.util.NetworkError
-import com.app.koshpal.core.presentation.util.ObserveAsEvents
-import com.app.koshpal.core.presentation.util.toString
-import com.app.koshpal.ui.theme.SetStatusBarAppearance
 
 
 @Composable
@@ -90,6 +93,8 @@ fun AuthScreen(
     val imageLoader = ImageLoader.Builder(context).components { add(GifDecoder.Factory()) }.build()
     var isPasswordVisible by remember { mutableStateOf(false) }
     val passwordFocusRequester = remember { FocusRequester() }
+    val userPreferences: UserPreferences = koinInject()
+    val scope = rememberCoroutineScope()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -97,16 +102,18 @@ fun AuthScreen(
                 if (event.message == "guest_login") {
                     onToMain()
                 } else {
-                    onToOnBoard()
+                    scope.launch {
+                        val hasCompleted = userPreferences.hasCompletedOnboarding.first()
+                        if (hasCompleted) {
+                            onToMain()
+                        } else {
+                            onToOnBoard()
+                        }
+                    }
                 }
             }
             is Events.Error -> {
-                val message = if (event.error is NetworkError) {
-                    event.error.toString(context)
-                } else {
-                    event.message ?: "An unknown error occurred"
-                }
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, event.message ?: "An error occurred", Toast.LENGTH_LONG).show()
             }
             else -> {}
         }

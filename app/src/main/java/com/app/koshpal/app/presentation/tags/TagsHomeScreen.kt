@@ -176,7 +176,11 @@ fun TagsHomeScreen(
             } else if (isFilterVisible) {
                 TagsFilterSection(
                     showHidden = showHidden,
-                    onToggleHidden = { viewModel.toggleShowHidden() }
+                    onToggleHidden = { viewModel.toggleShowHidden() },
+                    onDateSelected = { period ->
+                        viewModel.updateSelectedPeriod(period)
+                        scope.launch { scaffoldState.bottomSheetState.hide() }
+                    }
                 )
             } else if (isEditing) {
                 Column(

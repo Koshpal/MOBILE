@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+
 android {
     namespace = "com.app.koshpal"
     compileSdk {
@@ -20,6 +21,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BASE_URL", "\"https://api.koshpal.com/api/v1/\"")
     }
 
     buildTypes {
@@ -35,8 +37,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
@@ -45,6 +47,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":shared"))
+    implementation(libs.kotlinx.datetime)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

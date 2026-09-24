@@ -3,8 +3,11 @@ package com.app.koshpal
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -12,11 +15,22 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -28,13 +42,9 @@ import com.app.koshpal.app.presentation.globalcomponents.LocalBottomBarVisibilit
 import com.app.koshpal.app.presentation.navigation.AppNavHost
 import com.app.koshpal.app.presentation.navigation.Screen
 import com.app.koshpal.ui.theme.KoshpalTheme
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.provider.Settings
-import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
 class MainActivity : FragmentActivity() {
@@ -43,11 +53,15 @@ class MainActivity : FragmentActivity() {
     private var isAuthenticated by mutableStateOf(false)
 
     private fun checkBiometricStatus(): Int {
-        val biometricManager =BiometricManager.from(this)
-        return biometricManager.canAuthenticate(
-            BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
-        )
+        return try {
+            val biometricManager = BiometricManager.from(this)
+            biometricManager.canAuthenticate(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
+        } catch (_: Exception) {
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE
+        }
     }
 
     private fun showBiometricPrompt() {
@@ -174,15 +188,10 @@ class MainActivity : FragmentActivity() {
                     val bottomBarScreens = listOf(
                         Screen.MainRoot.route,
                         Screen.BudgetHome.route,
-                        Screen.DetailedBudget.route,
                         Screen.GoalsHome.route,
-                        Screen.DetailedGoal.route,
                         Screen.DuesHome.route,
-                        Screen.DetailedDue.route,
                         Screen.TagsHome.route,
-                        Screen.DetailedTag.route,
                         Screen.TransactionsHome.route,
-                        Screen.DetailedTransaction.route,
                         Screen.CashHome.route,
                         Screen.Graph.BUDGET,
                         Screen.Graph.DUES,

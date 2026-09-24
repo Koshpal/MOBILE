@@ -9,15 +9,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
-import com.app.koshpal.ui.theme.Outfit
 import com.app.koshpal.app.presentation.globalcomponents.FilterToggleCard
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import com.app.koshpal.ui.theme.Outfit
+import kotlinx.datetime.LocalDate
+
+private val MONTH_NAMES = arrayOf(
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +77,7 @@ fun DuesFilterSection(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = selectedDate?.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)) ?: "Select a month",
+                    text = selectedDate?.let { "${MONTH_NAMES[it.monthNumber - 1]} ${it.year}" } ?: "Select a month",
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (selectedDate != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -91,7 +94,8 @@ fun DuesFilterSection(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let {
-                        onDateSelected(LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000)))
+                        val days = (it / (24 * 60 * 60 * 1000)).toInt()
+                        onDateSelected(LocalDate.fromEpochDays(days))
                     }
                     showDatePicker = false
                 }) {

@@ -72,8 +72,7 @@ fun NavGraphBuilder.duesMainGraph(
             DetailedDueScreen(
                 viewModel = duesViewModel,
                 onToPreviousScreen = { navController.popBackStack() },
-                onToSettings = {
-                }
+                onEditDue = { navController.navigate(Screen.CreateDue.route) }
             )
         }
         composable(

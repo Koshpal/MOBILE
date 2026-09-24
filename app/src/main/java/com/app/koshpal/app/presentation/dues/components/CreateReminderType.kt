@@ -27,7 +27,7 @@ import com.app.koshpal.R
 import com.app.koshpal.app.domain.model.availableCategoryColors
 import com.app.koshpal.app.domain.model.availableCategoryIcons
 import com.app.koshpal.app.domain.model.toColorLong
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.ui.theme.Outfit
 
 @Composable

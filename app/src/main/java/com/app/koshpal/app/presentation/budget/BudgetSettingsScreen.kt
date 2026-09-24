@@ -1,11 +1,19 @@
 package com.app.koshpal.app.presentation.budget
 
 import android.widget.Toast
-import com.app.koshpal.app.domain.model.*
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -13,23 +21,48 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
 import com.app.koshpal.app.Events
+import com.app.koshpal.app.domain.model.Category
+import com.app.koshpal.app.domain.model.CategoryAllocationUi
+import com.app.koshpal.app.domain.model.availableCategoryColors
+import com.app.koshpal.app.domain.model.defaultSubCategories
+import com.app.koshpal.app.domain.model.toColorLong
 import com.app.koshpal.app.presentation.budget.component.BudgetRow
 import com.app.koshpal.app.presentation.budget.component.CreateCategory
 import com.app.koshpal.app.presentation.budget.component.EditCategorySheet
@@ -37,6 +70,8 @@ import com.app.koshpal.app.presentation.budget.component.SectionHeader
 import com.app.koshpal.app.presentation.budget.component.dialog.CategorySelectionDialog
 import com.app.koshpal.app.presentation.budget.component.dialog.DeleteConfirmationDialog
 import com.app.koshpal.app.presentation.budget.component.dialog.MonthlyStartDatePickerDialog
+import com.app.koshpal.app.presentation.globalcomponents.FilterToggleCard
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.app.viewmodels.budgetviewmodel.BudgetSettingsViewModel
 import com.app.koshpal.core.data.entities.enums.BudgetPeriod
 import com.app.koshpal.core.data.entities.enums.BudgetType
@@ -57,6 +92,7 @@ fun BudgetSettingsScreen(
     val title by viewModel.title.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
     val budgetType by viewModel.budgetType.collectAsStateWithLifecycle()
+    val isRepeating by viewModel.isRepeating.collectAsStateWithLifecycle()
     val startDate by viewModel.startDate.collectAsStateWithLifecycle()
     val endDate by viewModel.endDate.collectAsStateWithLifecycle()
     val overallAmount by viewModel.overallAmountString.collectAsStateWithLifecycle()
@@ -266,6 +302,7 @@ fun BudgetSettingsScreen(
                 title = title,
                 period = period,
                 budgetType = budgetType,
+                isRepeating = isRepeating,
                 startDate = startDate,
                 endDate = endDate,
                 overallAmount = overallAmount,
@@ -275,6 +312,7 @@ fun BudgetSettingsScreen(
                 onToPreviousScreen = onToPreviousScreen,
                 onTitleChange = { viewModel.updateTitle(it) },
                 onPeriodChange = { viewModel.updatePeriod(it) },
+                onRepeatingChange = { viewModel.updateIsRepeating(it) },
                 onStartDateClick = { showStartDatePicker = true },
                 onEndDateClick = { showEndDatePicker = true },
                 onOverallAmountChange = { viewModel.updateOverallAmount(it) },
@@ -301,18 +339,20 @@ fun BudgetSettingsContent(
     title: String,
     period: BudgetPeriod,
     budgetType: BudgetType,
+    isRepeating: Boolean,
     startDate: String,
     endDate: String,
     overallAmount: String,
-    allocations: List<CategoryAllocationUiState>,
+    allocations: List<CategoryAllocationUi>,
     overAllocatedAmount: Double,
     onToPreviousScreen: () -> Unit,
     onTitleChange: (String) -> Unit,
     onPeriodChange: (BudgetPeriod) -> Unit,
+    onRepeatingChange: (Boolean) -> Unit,
     onStartDateClick: () -> Unit,
     onEndDateClick: () -> Unit = {},
     onOverallAmountChange: (String) -> Unit,
-    onCategoryClick: (CategoryAllocationUiState) -> Unit,
+    onCategoryClick: (CategoryAllocationUi) -> Unit,
     onRemoveCategory: (Category) -> Unit,
     onCategoryAmountChange: (String, String) -> Unit,
     onAddCategoryClick: () -> Unit,
@@ -389,6 +429,15 @@ fun BudgetSettingsContent(
                     }
                 }
             }
+            if (budgetType == BudgetType.RECURRING) {
+                Spacer(modifier = Modifier.height(16.dp))
+                FilterToggleCard(
+                    label = "Budget should repeat every ${period.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                    icon = R.drawable.repeat_one_24px,
+                    checked = isRepeating,
+                    onCheckedChange = { onRepeatingChange(it) }
+                )
+            }
         }
 
         item {
@@ -443,7 +492,7 @@ fun BudgetSettingsContent(
                             .padding(6.dp)
                             .selectableGroup()
                     ) {
-                        BudgetPeriod.entries.forEach { option ->
+                        BudgetPeriod.entries.filter { it != BudgetPeriod.UNKNOWN }.forEach { option ->
                             val isSelected = option == period
                             Box(
                                 modifier = Modifier
@@ -464,6 +513,15 @@ fun BudgetSettingsContent(
                         }
                     }
                 }
+            }
+            if (budgetType == BudgetType.RECURRING) {
+                Spacer(modifier = Modifier.height(16.dp))
+                FilterToggleCard(
+                    label = "Budget should repeat every ${period.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                    icon = R.drawable.repeat_one_24px,
+                    checked = isRepeating,
+                    onCheckedChange = { onRepeatingChange(it) }
+                )
             }
         }
 
@@ -535,6 +593,15 @@ fun BudgetSettingsContent(
                         Text(text = startDate.toDisplayDate(), fontSize = 14.sp)
                     }
                 }
+            }
+            if (budgetType == BudgetType.RECURRING) {
+                Spacer(modifier = Modifier.height(16.dp))
+                FilterToggleCard(
+                    label = "Budget should repeat every ${period.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                    icon = R.drawable.repeat_one_24px,
+                    checked = isRepeating,
+                    onCheckedChange = { onRepeatingChange(it) }
+                )
             }
         }
 

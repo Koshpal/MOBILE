@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import com.app.koshpal.R
 import com.app.koshpal.app.domain.model.*
 import com.app.koshpal.core.data.entities.enums.TransactionType
+import com.app.koshpal.core.data.entities.enums.toBankDisplayName
 import com.app.koshpal.core.presentation.util.toDisplayDate
 import com.app.koshpal.ui.theme.ErrorRedDark
 import com.app.koshpal.ui.theme.Jakarta
@@ -88,7 +89,7 @@ fun HomeTransactionItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = if (isUncategorized) transaction.bank else classificationName,
+                text = if (isUncategorized) transaction.bank.toBankDisplayName() else classificationName,
                 fontSize = 12.sp,
                 fontFamily = Outfit,
                 color = MaterialTheme.colorScheme.outline

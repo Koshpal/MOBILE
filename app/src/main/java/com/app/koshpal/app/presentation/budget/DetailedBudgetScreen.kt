@@ -2,13 +2,46 @@ package com.app.koshpal.app.presentation.budget
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,12 +56,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.koshpal.R
-import com.app.koshpal.app.domain.model.*
+import com.app.koshpal.app.domain.model.RingChartSegment
+import com.app.koshpal.app.domain.model.SelectedOptions
+import com.app.koshpal.app.domain.model.getInitials
+import com.app.koshpal.app.domain.model.toColorLong
 import com.app.koshpal.app.presentation.budget.component.BudgetOverviewCard
+import com.app.koshpal.app.presentation.budget.component.BudgetTrendSection
 import com.app.koshpal.app.presentation.budget.component.DetailedCategoryCard
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.app.viewmodels.budgetviewmodel.BudgetViewModel
 import com.app.koshpal.core.data.entities.enums.toReadableString
-import com.app.koshpal.ui.theme.*
+import com.app.koshpal.ui.theme.Jakarta
+import com.app.koshpal.ui.theme.Outfit
+import com.app.koshpal.ui.theme.SetStatusBarAppearance
+import com.app.koshpal.ui.theme.SetStatusBarVisibility
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -42,8 +83,10 @@ fun DetailedBudgetScreen(
     onToSettings: () -> Unit,
     onToCreateBudget: () -> Unit = {}
 ) {
-    val budgets by viewModel.budgets.collectAsStateWithLifecycle()
-    val historyBudgets by viewModel.historyBudgets.collectAsStateWithLifecycle()
+    val initialBudgets = remember { viewModel.budgets.value }
+    val initialHistoryBudgets = remember { viewModel.historyBudgets.value }
+    val budgets by viewModel.budgets.collectAsStateWithLifecycle(initialValue = initialBudgets)
+    val historyBudgets by viewModel.historyBudgets.collectAsStateWithLifecycle(initialValue = initialHistoryBudgets)
     val clickedBudgetId by viewModel.clickedBudgetId.collectAsStateWithLifecycle()
     val showHistory by viewModel.showHistory.collectAsStateWithLifecycle()
     val isEditing by viewModel.isEditing.collectAsStateWithLifecycle()
@@ -83,7 +126,7 @@ fun DetailedBudgetScreen(
         val allocation = budget.allocations.find { it.categoryId == category.id }
         if (allocation != null && budget.amount > 0) {
             RingChartSegment(
-                color = Color(category.colorHex.toColorLong()),
+                colorHex = category.colorHex,
                 percentage = (allocation.allocatedAmount / budget.amount).toFloat()
             )
         } else null
@@ -303,6 +346,24 @@ fun DetailedBudgetScreen(
                             Card(
                                 modifier = Modifier.size(26.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                                onClick = { onToSettings() }
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        painter = painterResource(id = R.drawable.edit_24px),
+                                        contentDescription = "Edit Budget",
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                            Card(
+                                modifier = Modifier.size(26.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                                 onClick = {
                                     if (isEditing) {
                                         viewModel.resetEditingState()
@@ -320,26 +381,8 @@ fun DetailedBudgetScreen(
                                 ) {
                                     Icon(
                                         tint = MaterialTheme.colorScheme.primary,
-                                        painter = painterResource(id = if (isEditing) R.drawable.close_24px else R.drawable.edit_24px),
+                                        painter = painterResource(id = if (isEditing) R.drawable.close_24px else R.drawable.more_vert_24px),
                                         contentDescription = "Edit"
-                                    )
-                                }
-                            }
-                            Card(
-                                modifier = Modifier.size(26.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                                onClick = { onToSettings() }
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        painter = painterResource(id = R.drawable.settings_24px),
-                                        contentDescription = "Settings",
-                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                             }
@@ -451,6 +494,16 @@ fun DetailedBudgetScreen(
                         category.parentCategoryId == null &&
                                 !excludedCategoryIds.contains(category.id) &&
                                 (showHidden || !hiddenCategoryIds.contains(category.id))
+                    }
+
+                    if(showHistory){
+                        item{
+                            BudgetTrendSection(
+                                budget = budget,
+                                totalSpent = totalSpent,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
                     }
 
                     items(visibleParentCategories, key = { it.id }) { category ->

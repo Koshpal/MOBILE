@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.koshpal.R
 import com.app.koshpal.app.domain.model.Notification
-import com.app.koshpal.app.domain.model.toDrawableResId
+import com.app.koshpal.app.presentation.util.toDrawableResId
 import com.app.koshpal.core.data.entities.enums.NotificationType
 import com.app.koshpal.ui.theme.Jakarta
 import com.app.koshpal.ui.theme.Outfit
