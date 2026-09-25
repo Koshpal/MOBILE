@@ -1,5 +1,6 @@
 package com.app.koshpal.app.domain.usecase.transactionsusecase
 
+import com.app.koshpal.app.data.UserPreferences
 import com.app.koshpal.app.data.mapper.toParsedTransaction
 import com.app.koshpal.app.data.mapper.toTransaction
 import com.app.koshpal.app.domain.model.Notification
@@ -15,7 +16,7 @@ import com.app.koshpal.core.sms.model.SmsMessage
 import com.app.koshpal.core.sms.parser.TransactionSmsParser
 import com.app.koshpal.core.sms.validate.TransactionValidator
 import kotlinx.coroutines.flow.first
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -28,9 +29,16 @@ class ProcessIncomingSmsUseCase(
     private val duplicateDetector: DuplicateDetector,
     private val notificationHelper: NotificationHelper,
     private val notificationUseCases: NotificationUseCases,
+    private val userPreferences: UserPreferences,
     private val resolveContactName: ((String) -> String?)? = null,
 ) {
     suspend operator fun invoke(sms: SmsMessage) {
+        val token = userPreferences.accessToken.first()
+        if (token == null) return
+
+        val isAutoMessageEnabled = userPreferences.isAutoMessageTransactionsEnabled.first()
+        if (!isAutoMessageEnabled) return
+
         if (filter.filter(listOf(sms)).isEmpty()) {
             return
         }

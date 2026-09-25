@@ -1,17 +1,26 @@
 package com.app.koshpal.app.fluxdeck
 
-import com.app.koshpal.app.domain.model.*
+import com.app.koshpal.app.domain.model.Budget
+import com.app.koshpal.app.domain.model.BudgetContext
+import com.app.koshpal.app.domain.model.DueWithMetadata
+import com.app.koshpal.app.domain.model.Goal
+import com.app.koshpal.app.domain.model.HomeTagSummary
+import com.app.koshpal.app.domain.model.SpendingSummary
+import com.app.koshpal.app.domain.model.Transactions
 import com.app.koshpal.core.data.entities.enums.BudgetType
 import com.app.koshpal.core.data.entities.enums.TransactionType
 import com.app.koshpal.core.presentation.util.parseIsoToLocalDate
-import kotlinx.coroutines.flow.*
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val MONTH_NAMES = arrayOf(
     "January", "February", "March", "April", "May", "June",
@@ -34,16 +43,16 @@ class HomeFluxDeck(
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         list.find { budget ->
             val budgetDate = parseBudgetDate(budget.startDate)
-            budgetDate?.monthNumber == now.monthNumber && budgetDate?.year == now.year && budget.budgetType == BudgetType.RECURRING
+            budgetDate?.month?.number == now.month.number && budgetDate.year == now.year && budget.budgetType == BudgetType.RECURRING
         }
     }
 
     val monthlyBudgetContext: Flow<BudgetContext> = budgetFluxDeck.allBudgets.map { list ->
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val monthName = MONTH_NAMES[now.monthNumber - 1]
+        val monthName = MONTH_NAMES[now.month.number - 1]
         val matchingBudgets = list.filter { budget ->
             val budgetDate = parseBudgetDate(budget.startDate)
-            budgetDate?.monthNumber == now.monthNumber && budgetDate?.year == now.year
+            budgetDate?.month?.number == now.month.number && budgetDate.year == now.year
         }
         BudgetContext(
             count = matchingBudgets.size,
@@ -55,14 +64,14 @@ class HomeFluxDeck(
     val currentMonthRange: Flow<Pair<Long, Long>> = activeMonthlyBudget.map { budget ->
         budget?.getDateRange() ?: run {
             val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-            val startLocalDate = LocalDate(now.year, now.monthNumber, 1)
-            val endMonthDays = when (now.monthNumber) {
+            val startLocalDate = LocalDate(now.year, now.month.number, 1)
+            val endMonthDays = when (now.month.number) {
                 2 -> if ((now.year % 4 == 0 && now.year % 100 != 0) || (now.year % 400 == 0)) 29 else 28
                 4, 6, 9, 11 -> 30
                 else -> 31
             }
             val start = Instant.parse("${startLocalDate}T00:00:00Z").toEpochMilliseconds()
-            val endLocalDate = LocalDate(now.year, now.monthNumber, endMonthDays)
+            val endLocalDate = LocalDate(now.year, now.month.number, endMonthDays)
             val end = Instant.parse("${endLocalDate}T23:59:59Z").toEpochMilliseconds()
             start to end
         }

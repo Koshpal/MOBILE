@@ -34,6 +34,7 @@ class TransactionsCoordinator(
     private val userPreferences: UserPreferences,
     private val fluxDeck: TransactionsFluxDeck,
     private val authUseCases: AuthUseCases,
+    private val authCoordinatorProvider: () -> AuthCoordinator,
     private val scope: CoroutineScope
 ) {
     val reflector = StateReflector<Events>(scope)
@@ -108,7 +109,14 @@ class TransactionsCoordinator(
             val currentRefreshToken = userPreferences.refreshToken.first() ?: return@launch
             val currentRefreshTokenId = userPreferences.refreshTokenId.first() ?: ""
             val result = authUseCases.onRefreshTokenUseCase(currentRefreshToken, currentRefreshTokenId)
-            reflector.handleResult(result) { user ->
+            reflector.handleResult(
+                result,
+                onError = { error ->
+                    if (error == NetworkError.INVALID_USER) {
+                        authCoordinatorProvider().logout()
+                    }
+                }
+            ) { user ->
                 userPreferences.saveAccessToken(user.accessToken)
                 userPreferences.saveRefreshToken(user.refreshToken)
                 if (!user.refreshTokenId.isNullOrBlank()) {

@@ -256,6 +256,26 @@ class UserPreferences(private val dataStore: DataStore<Preferences>) {
             prefs.remove(usernameKey)
             prefs.remove(emailKey)
             prefs.remove(phoneKey)
+            
+            // Clear all permissions and toggles
+            prefs.remove(isBiometricEnabledKey)
+            prefs.remove(incomingTransactionsNotifKey)
+            prefs.remove(budgetAlertsNotifKey)
+            prefs.remove(duesRemindersNotifKey)
+            prefs.remove(goalsProgressNotifKey)
+            prefs.remove(hasRequestedPermissionsKey)
+            prefs.remove(isAutoSiriTransactionsEnabledKey)
+            prefs.remove(isAutoMessageTransactionsEnabledKey)
+            // Note: intentionally preserving hasCompletedOnboardingKey so the user doesn't see the onboarding again on this device.
+
+            // Clear all UI hidden/flagged states
+            prefs.remove(hiddenBudgetIdsKey)
+            prefs.remove(hiddenCategoryIdsKey)
+            prefs.remove(flaggedBudgetIdsKey)
+            prefs.remove(hiddenDueIdsKey)
+            prefs.remove(hiddenTagIdsKey)
+            prefs.remove(hiddenGoalIdsKey)
+            prefs.remove(flaggedGoalIdsKey)
         }
     }
 }

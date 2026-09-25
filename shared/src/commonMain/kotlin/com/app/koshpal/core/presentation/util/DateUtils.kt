@@ -1,18 +1,19 @@
 package com.app.koshpal.core.presentation.util
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 private val MONTH_NAMES = arrayOf(
     "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "July", "August", "September", "October", "November", "December",
 )
 
 private val MONTH_ABBRS = arrayOf(
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 )
 
 fun Long.toIso8601String(): String {
@@ -25,15 +26,15 @@ fun String.toDisplayDate(): String {
     try {
         val instant = Instant.parse(this)
         val date = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val day = date.dayOfMonth.toString().padStart(2, '0')
-        val month = MONTH_NAMES[date.monthNumber - 1]
+        val day = date.day.toString().padStart(2, '0')
+        val month = MONTH_NAMES[date.month.number - 1]
         val year = date.year
         return "$day $month $year"
     } catch (_: Exception) { }
 
     val date = this.parseIsoToLocalDate() ?: return this
-    val day = date.dayOfMonth.toString().padStart(2, '0')
-    val month = MONTH_NAMES[date.monthNumber - 1]
+    val day = date.day.toString().padStart(2, '0')
+    val month = MONTH_NAMES[date.month.number - 1]
     val year = date.year
     return "$day $month $year"
 }

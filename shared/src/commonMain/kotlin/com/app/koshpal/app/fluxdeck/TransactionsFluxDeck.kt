@@ -14,11 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val MONTH_NAMES = arrayOf(
     "January", "February", "March", "April", "May", "June",
@@ -209,7 +210,7 @@ class TransactionsFluxDeck {
         list.groupBy { transaction ->
             val date = Instant.fromEpochMilliseconds(transaction.transactionDate)
                 .toLocalDateTime(TimeZone.currentSystemDefault()).date
-            "${MONTH_NAMES[date.monthNumber - 1]} ${date.year}"
+            "${MONTH_NAMES[date.month.number - 1]} ${date.year}"
         }.mapValues { Transactions(it.value) }
     }
 

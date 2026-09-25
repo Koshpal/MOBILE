@@ -8,10 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val MONTH_ABBRS = arrayOf(
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -85,7 +86,7 @@ class CashFluxDeck {
                     val txnDate = Instant.fromEpochMilliseconds(it.transactionDate)
                         .toLocalDateTime(TimeZone.currentSystemDefault()).date
                     when (period) {
-                        "This Month" -> txnDate.monthNumber == now.monthNumber && txnDate.year == now.year
+                        "This Month" -> txnDate.month.number == now.month.number && txnDate.year == now.year
                         "This Year" -> txnDate.year == now.year
                         else -> true
                     }
@@ -113,8 +114,8 @@ class CashFluxDeck {
         val end = Instant.fromEpochMilliseconds(cashOnly.last().transactionDate)
             .toLocalDateTime(TimeZone.currentSystemDefault()).date
         
-        val startStr = "${MONTH_ABBRS[start.monthNumber - 1]} ${start.dayOfMonth.toString().padStart(2, '0')}, ${start.year}"
-        val endStr = "${MONTH_ABBRS[end.monthNumber - 1]} ${end.dayOfMonth.toString().padStart(2, '0')}, ${end.year}"
+        val startStr = "${MONTH_ABBRS[start.month.number - 1]} ${start.day.toString().padStart(2, '0')}, ${start.year}"
+        val endStr = "${MONTH_ABBRS[end.month.number - 1]} ${end.day.toString().padStart(2, '0')}, ${end.year}"
         
         startStr to endStr
     }

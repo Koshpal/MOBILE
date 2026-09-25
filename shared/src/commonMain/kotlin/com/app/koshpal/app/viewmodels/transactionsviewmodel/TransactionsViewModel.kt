@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.app.koshpal.app.fluxdeck.TransactionsFluxDeck
 import com.app.koshpal.app.domain.coordinator.TransactionsCoordinator
 import kotlinx.coroutines.flow.*
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 class TransactionsViewModel(
     private val coordinator: TransactionsCoordinator,

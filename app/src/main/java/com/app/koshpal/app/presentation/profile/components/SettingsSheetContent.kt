@@ -1,7 +1,7 @@
 package com.app.koshpal.app.presentation.profile.components
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,13 +40,13 @@ fun SettingsSheetContent(
 
     val openPlayStore = {
         val packageName = context.packageName
-        val playStoreIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+        val playStoreIntent = Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
         try {
             context.startActivity(playStoreIntent)
         } catch (_: Exception) {
-            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+            val webIntent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri())
             try {
                 context.startActivity(webIntent)
             } catch (_: Exception) {}
@@ -251,7 +251,7 @@ fun SettingsSheetContent(
                                 onClick = {
                                     activeDialogType = null
                                     val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                        data = Uri.parse("mailto:support@koshpal.com")
+                                        data = "mailto:support@koshpal.com".toUri()
                                         putExtra(Intent.EXTRA_SUBJECT, "Koshpal Support Request")
                                     }
                                     try {

@@ -1,18 +1,33 @@
 package com.app.koshpal.app.fluxdeck
 
 import com.app.koshpal.app.data.UserPreferences
-import com.app.koshpal.app.domain.model.*
+import com.app.koshpal.app.domain.model.Budget
+import com.app.koshpal.app.domain.model.Category
+import com.app.koshpal.app.domain.model.Goal
+import com.app.koshpal.app.domain.model.Tag
+import com.app.koshpal.app.domain.model.TagCategoryAnalytics
+import com.app.koshpal.app.domain.model.TagDetailAnalytics
+import com.app.koshpal.app.domain.model.TagSummary
+import com.app.koshpal.app.domain.model.Transaction
+import com.app.koshpal.app.domain.model.Transactions
+import com.app.koshpal.app.domain.model.defaultDialogCategories
+import com.app.koshpal.app.domain.model.defaultSubCategories
 import com.app.koshpal.core.data.entities.enums.TransactionType
 import com.app.koshpal.core.presentation.util.parseIsoToLocalDate
-import kotlinx.coroutines.flow.*
-import kotlinx.datetime.Clock
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class TagsFluxDeck(
     userPreferences: UserPreferences,
@@ -209,12 +224,12 @@ class TagsFluxDeck(
             val date = Instant.fromEpochMilliseconds(it.transactionDate)
                 .toLocalDateTime(TimeZone.currentSystemDefault()).date
             when {
-                period == "This Month" -> date.monthNumber == now.monthNumber && date.year == now.year
+                period == "This Month" -> date.month.number == now.month.number && date.year == now.year
                 period == "This Week" -> date >= now.minus(7, DateTimeUnit.DAY)
                 period == "Last 3 Months" -> date >= now.minus(3, DateTimeUnit.MONTH)
                 period == "Last Month" -> {
                     val lastMonthDate = now.minus(1, DateTimeUnit.MONTH)
-                    date.monthNumber == lastMonthDate.monthNumber && date.year == lastMonthDate.year
+                    date.month.number == lastMonthDate.month.number && date.year == lastMonthDate.year
                 }
                 period == "This Year" -> date.year == now.year
                 period.startsWith("date:") -> {
@@ -232,12 +247,12 @@ class TagsFluxDeck(
         return list.filter {
             val date = it.creationDate.parseIsoToLocalDate() ?: now
             when {
-                period == "This Month" -> date.monthNumber == now.monthNumber && date.year == now.year
+                period == "This Month" -> date.month.number == now.month.number && date.year == now.year
                 period == "This Week" -> date >= now.minus(7, DateTimeUnit.DAY)
                 period == "Last 3 Months" -> date >= now.minus(3, DateTimeUnit.MONTH)
                 period == "Last Month" -> {
                     val lastMonthDate = now.minus(1, DateTimeUnit.MONTH)
-                    date.monthNumber == lastMonthDate.monthNumber && date.year == lastMonthDate.year
+                    date.month.number == lastMonthDate.month.number && date.year == lastMonthDate.year
                 }
                 period == "This Year" -> date.year == now.year
                 period.startsWith("date:") -> {

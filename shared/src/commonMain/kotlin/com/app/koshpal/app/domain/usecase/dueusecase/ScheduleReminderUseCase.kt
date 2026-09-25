@@ -2,12 +2,13 @@ package com.app.koshpal.app.domain.usecase.dueusecase
 
 import com.app.koshpal.app.domain.model.Due
 import com.app.koshpal.core.alarm.ReminderScheduler
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val MONTH_NAMES = arrayOf(
     "January", "February", "March", "April", "May", "June",
@@ -54,8 +55,8 @@ class ScheduleReminderUseCase(private val scheduler: ReminderScheduler) {
 
     fun formatDisplayDate(timestamp: Long): String {
         val date = Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val day = date.dayOfMonth
-        val month = MONTH_NAMES[date.monthNumber - 1]
+        val day = date.day
+        val month = MONTH_NAMES[date.month.number - 1]
         val year = date.year
         return "$day $month $year"
     }

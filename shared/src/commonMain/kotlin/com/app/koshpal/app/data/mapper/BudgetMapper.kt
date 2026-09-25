@@ -9,7 +9,7 @@ import com.app.koshpal.core.data.entities.enums.BudgetPeriod
 import com.app.koshpal.core.data.entities.enums.BudgetType
 import com.app.koshpal.core.data.remote.dto.BudgetDto
 import com.app.koshpal.core.data.remote.dto.CategoryWithAmountDto
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 

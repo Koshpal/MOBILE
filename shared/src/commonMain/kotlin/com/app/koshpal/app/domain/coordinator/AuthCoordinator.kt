@@ -17,6 +17,7 @@ import com.app.koshpal.app.fluxdeck.ProfileFluxDeck
 import com.app.koshpal.app.fluxdeck.TagsFluxDeck
 import com.app.koshpal.app.fluxdeck.TransactionsFluxDeck
 import com.app.koshpal.app.handleResult
+import com.app.koshpal.core.alarm.ReminderScheduler
 import com.app.koshpal.core.data.local.AppDatabase
 import com.app.koshpal.core.data.local.clearAllTablesKmp
 import com.app.koshpal.core.domain.util.NetworkError
@@ -47,6 +48,7 @@ class AuthCoordinator(
     private val appDatabase: AppDatabase,
     private val ioDispatcher: CoroutineDispatcher,
     private val scope: CoroutineScope,
+    private val reminderScheduler: ReminderScheduler,
 ) {
     val reflector = StateReflector<Events>(scope)
     val events = reflector.events
@@ -147,6 +149,11 @@ class AuthCoordinator(
 
     fun logout() {
         scope.launch {
+            // Cancel all scheduled OS alarms for dues
+            duesFluxDeck.allDues.value.forEach { due ->
+                reminderScheduler.cancel(due.id)
+            }
+
             withContext(ioDispatcher) {
                 appDatabase.clearAllTablesKmp()
                 userPreferences.clearAuth()

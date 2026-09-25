@@ -7,9 +7,11 @@ import com.app.koshpal.core.data.entities.enums.TransactionType
 import com.app.koshpal.core.data.entities.enums.toBankDisplayName
 import com.app.koshpal.core.data.remote.dto.TransactionDto
 import com.app.koshpal.core.data.remote.dto.TransactionsDto
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 fun Transactions.toTransactionsDto(): TransactionsDto {
     return TransactionsDto(
@@ -27,6 +29,7 @@ fun TransactionsDto.toLocalTransactions(): Transactions {
     )
 }
 
+@OptIn(ExperimentalUuidApi::class)
 fun TransactionDto.toTransaction(): Transaction {
     val dateString = transactionDate ?: ""
     val millis = try {
@@ -42,6 +45,7 @@ fun TransactionDto.toTransaction(): Transaction {
     val accountNoInt = (maskedAccountNo ?: "").takeLast(4).toIntOrNull() ?: 0
 
     return Transaction(
+        id = id ?: Uuid.random().toString(),
         accountId = accountId ?: "",
         amount = amount ?: 0.0,
         type = type ?: TransactionType.EXPENSE,
@@ -74,6 +78,7 @@ fun Transaction.toTransactionsDto(): TransactionDto {
     val accountNoStr = if (maskedAccountNo == 0) "XXXX0000" else "XXXX" + maskedAccountNo.toString().padStart(4, '0')
 
     return TransactionDto(
+        id = id.ifBlank { null },
         accountId = accountId.ifBlank { null },
         amount = amount,
         type = type,

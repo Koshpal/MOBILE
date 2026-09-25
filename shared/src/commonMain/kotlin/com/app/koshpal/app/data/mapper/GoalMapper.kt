@@ -3,7 +3,7 @@ package com.app.koshpal.app.data.mapper
 import com.app.koshpal.app.domain.model.Goal
 import com.app.koshpal.core.data.entities.GoalEntity
 import com.app.koshpal.core.data.remote.dto.GoalDto
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 fun GoalEntity.toGoal(): Goal {
     return Goal(

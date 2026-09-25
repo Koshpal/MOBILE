@@ -18,13 +18,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
+import kotlinx.datetime.number
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -229,7 +230,7 @@ class BudgetFluxDeck(
             val matchesPeriod = period == null || budget.period == period
             
             val budgetDate = parseBudgetDate(budget.startDate)
-            val matchesDate = date == null || (budgetDate?.monthNumber == date.monthNumber && budgetDate?.year == date.year)
+            val matchesDate = date == null || (budgetDate?.month?.number == date.month.number && budgetDate.year == date.year)
             
             if (!matchesType || !matchesPeriod || !matchesDate) return@filter false
 

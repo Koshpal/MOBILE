@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 class BudgetRepoImpl(
     private val localDataSource: BudgetLocalDataSource,
@@ -106,6 +106,7 @@ class BudgetRepoImpl(
             if (allocationEntities.isNotEmpty()) {
                 localDataSource.insertAllocations(allocationEntities)
             }
+            syncRemoteBudget(budget = budget)
         }
     }
 
@@ -124,6 +125,7 @@ class BudgetRepoImpl(
             if (allocationEntities.isNotEmpty()) {
                 localDataSource.insertAllocations(allocationEntities)
             }
+            updateRemoteBudget(budget)
         }
     }
 

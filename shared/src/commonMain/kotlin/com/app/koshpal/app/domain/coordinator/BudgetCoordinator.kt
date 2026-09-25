@@ -32,11 +32,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -50,6 +50,7 @@ class BudgetCoordinator(
     private val userPreferences: UserPreferences,
     private val fluxDeck: BudgetFluxDeck,
     private val authUseCases: AuthUseCases,
+    private val authCoordinatorProvider: () -> AuthCoordinator,
     private val scope: CoroutineScope
 ) {
     val reflector = StateReflector<Events>(scope)
@@ -143,7 +144,14 @@ class BudgetCoordinator(
             val currentRefreshToken = userPreferences.refreshToken.first() ?: return@launch
             val currentRefreshTokenId = userPreferences.refreshTokenId.first() ?: ""
             val result = authUseCases.onRefreshTokenUseCase(currentRefreshToken, currentRefreshTokenId)
-            reflector.handleResult(result) { user ->
+            reflector.handleResult(
+                result,
+                onError = { error ->
+                    if (error == NetworkError.INVALID_USER) {
+                        authCoordinatorProvider().logout()
+                    }
+                }
+            ) { user ->
                 userPreferences.saveAccessToken(user.accessToken)
                 userPreferences.saveRefreshToken(user.refreshToken)
                 if (!user.refreshTokenId.isNullOrBlank()) {

@@ -45,8 +45,7 @@ class GoalRepoImpl(
     override suspend fun insertGoal(goal: Goal): Result<Unit, DatabaseCallError> {
         return safeDatabaseCall {
             localDataSource.upsertGoal(goal.toGoalEntity())
-
-          syncRemoteGoal(goal)
+            syncRemoteGoal(goal)
         }
     }
 

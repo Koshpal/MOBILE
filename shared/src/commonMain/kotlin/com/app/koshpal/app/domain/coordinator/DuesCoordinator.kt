@@ -18,12 +18,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -190,7 +191,8 @@ class DuesCoordinator(
 
     private fun calculateTimestamp(dateStr: String, hour: Int, minute: Int): Long? {
         val localDate = dateStr.parseIsoToLocalDate() ?: return null
-        val dateTime = LocalDateTime(localDate.year, localDate.monthNumber, localDate.dayOfMonth, hour, minute)
+        val dateTime = LocalDateTime(localDate.year, localDate.month.number,
+            localDate.day, hour, minute)
         return dateTime.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
     }
 }

@@ -263,7 +263,7 @@ val appModule = module {
     }
     factory { 
         val resolver: ContactResolver = get()
-        ProcessIncomingSmsUseCase(get(), get(), get(), get(), get(), get(), get(), resolver::resolveContactName) 
+        ProcessIncomingSmsUseCase(get(), get(), get(), get(), get(), get(), get(), get(), resolver::resolveContactName) 
     }
     factory { 
         val resolver: ContactResolver = get()

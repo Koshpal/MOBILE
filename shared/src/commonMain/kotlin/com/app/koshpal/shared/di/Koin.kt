@@ -352,7 +352,7 @@ val sharedModule = module {
     single { TransactionSmsParser(get()) }
     single { SmsTransactionPipeline(get(), get(), get(), get(), get(), get()) }
 
-    factory { ProcessIncomingSmsUseCase(get(), get(), get(), get(), get(), get(), get(), getOrNull()) }
+    factory { ProcessIncomingSmsUseCase(get(), get(), get(), get(), get(), get(), get(), get(), getOrNull()) }
     factory { SyncSmsTransactionsUseCase(get(), get(), getOrNull()) }
 
     factory { GetAllReminderTypesUseCase(get()) }
@@ -393,14 +393,14 @@ val sharedModule = module {
     single { HomeFluxDeck(get(), get(), get(), get(), get()) }
 
     // Coordinators
-    single(createdAtStart = true) { BudgetCoordinator(get(), get(), get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { GoalCoordinator(get(), get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
-    single(createdAtStart = true) { TransactionsCoordinator(get(), get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
+    single(createdAtStart = true) { BudgetCoordinator(get(), get(), get(), get(), get(), get(), get(), get(), { get() }, get(named("MainScope"))) }
+    single(createdAtStart = true) { GoalCoordinator(get(), get(), get(), get(), get(), get(), get(), { get() }, get(named("MainScope"))) }
+    single(createdAtStart = true) { TransactionsCoordinator(get(), get(), get(), get(), get(), get(), get(), { get() }, get(named("MainScope"))) }
     single(createdAtStart = true) { DuesCoordinator(get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
     single(createdAtStart = true) { TagsCoordinator(get(), get(), get(), get(), get(), get(), get(), get(), get(named("MainScope"))) }
     single(createdAtStart = true) { CashCoordinator(get(), get(), get(), get(), get(named("MainScope"))) }
     single(createdAtStart = true) { ProfileCoordinator(get(), get(), { get() }, get(named("MainScope"))) }
-    single(createdAtStart = true) { AuthCoordinator(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named("IODispatcher")), get(named("MainScope"))) }
+    single(createdAtStart = true) { AuthCoordinator(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named("IODispatcher")), get(named("MainScope")), get()) }
 
     // ViewModels
     factory { CashViewModel(get(), get()) }

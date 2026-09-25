@@ -29,7 +29,7 @@ object Converters {
 
     @TypeConverter
     fun fromLocalDate(date: LocalDate): Long =
-        date.toEpochDays().toLong()
+        date.toEpochDays()
 
     @TypeConverter
     fun toLocalDate(epochDay: Long): LocalDate =

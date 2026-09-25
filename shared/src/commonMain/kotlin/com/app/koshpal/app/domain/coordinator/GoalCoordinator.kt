@@ -20,10 +20,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -36,6 +37,7 @@ class GoalCoordinator(
     private val userPreferences: UserPreferences,
     private val fluxDeck: GoalFluxDeck,
     private val authUseCases: AuthUseCases,
+    private val authCoordinatorProvider: () -> AuthCoordinator,
     private val scope: CoroutineScope
 ) {
     val reflector = StateReflector<Events>(scope)
@@ -78,7 +80,14 @@ class GoalCoordinator(
             val currentRefreshToken = userPreferences.refreshToken.first() ?: return@launch
             val currentRefreshTokenId = userPreferences.refreshTokenId.first() ?: ""
             val result = authUseCases.onRefreshTokenUseCase(currentRefreshToken, currentRefreshTokenId)
-            reflector.handleResult(result) { user ->
+            reflector.handleResult(
+                result,
+                onError = { error ->
+                    if (error == NetworkError.INVALID_USER) {
+                        authCoordinatorProvider().logout()
+                    }
+                }
+            ) { user ->
                 userPreferences.saveAccessToken(user.accessToken)
                 userPreferences.saveRefreshToken(user.refreshToken)
                 if (!user.refreshTokenId.isNullOrBlank()) {
@@ -209,7 +218,7 @@ class GoalCoordinator(
                 val creationDate = existingGoal.creationDate.parseIsoToLocalDate() ?: today
                 val targetLocalDate = Instant.fromEpochMilliseconds(fluxDeck.draftDate.value)
                     .toLocalDateTime(TimeZone.currentSystemDefault()).date
-                val months = (targetLocalDate.year - creationDate.year) * 12 + (targetLocalDate.monthNumber - creationDate.monthNumber)
+                val months = (targetLocalDate.year - creationDate.year) * 12 + (targetLocalDate.month.number - creationDate.month.number)
                 months.coerceAtLeast(1)
             } else existingGoal.durationMonths
 
@@ -227,7 +236,7 @@ class GoalCoordinator(
             val durationMonths = if (fluxDeck.isDateEnabled.value) {
                 val targetLocalDate = Instant.fromEpochMilliseconds(fluxDeck.draftDate.value)
                     .toLocalDateTime(TimeZone.currentSystemDefault()).date
-                val months = (targetLocalDate.year - today.year) * 12 + (targetLocalDate.monthNumber - today.monthNumber)
+                val months = (targetLocalDate.year - today.year) * 12 + (targetLocalDate.month.number - today.month.number)
                 months.coerceAtLeast(1)
             } else 12
 

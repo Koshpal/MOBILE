@@ -6,12 +6,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.abs
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val MONTH_ABBRS = arrayOf(
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -48,10 +49,10 @@ data class YearMonth(val year: Int, val month: Int) : Comparable<YearMonth> {
     companion object {
         fun now(): YearMonth {
             val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-            return YearMonth(date.year, date.monthNumber)
+            return YearMonth(date.year, date.month.number)
         }
 
-        fun from(date: LocalDate): YearMonth = YearMonth(date.year, date.monthNumber)
+        fun from(date: LocalDate): YearMonth = YearMonth(date.year, date.month.number)
     }
 }
 

@@ -2,7 +2,7 @@ package com.app.koshpal.core.sms.validate
 
 import com.app.koshpal.core.data.entities.enums.TransactionType
 import com.app.koshpal.core.sms.model.ParsedTransaction
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 class TransactionValidatorImpl : TransactionValidator {
 

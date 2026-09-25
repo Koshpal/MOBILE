@@ -4,12 +4,20 @@ import com.app.koshpal.app.domain.model.Due
 import com.app.koshpal.app.domain.model.ReminderType
 import com.app.koshpal.core.data.entities.enums.TransactionType
 import com.app.koshpal.core.presentation.util.parseIsoToLocalDate
-import kotlinx.coroutines.flow.*
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class DuesFluxDeck {
 
@@ -104,7 +112,7 @@ class DuesFluxDeck {
 
             val matchesDate = if (fDate != null) {
                 val dueLocalDate = due.date.parseIsoToLocalDate()
-                dueLocalDate?.let { it.monthNumber == fDate.monthNumber && it.year == fDate.year } ?: true
+                dueLocalDate?.let { it.month.number == fDate.month.number && it.year == fDate.year } ?: true
             } else true
 
             matchesQuery && matchesTab && matchesDate
@@ -189,7 +197,7 @@ class DuesFluxDeck {
         _reminderTitle.value = due.title
         _reminderAmount.value = due.amount.let { if (it == 0.0) "" else if (it % 1.0 == 0.0) it.toLong().toString() else it.toString() }
         _reminderDate.value = due.date
-        _reminderFrequency.value = if (due.frequency.isBlank()) "Do not repeat" else due.frequency
+        _reminderFrequency.value = due.frequency.ifBlank { "Do not repeat" }
         _customFrequencyDays.value = due.customFrequencyDays
         _transactionType.value = try { TransactionType.valueOf(due.type) } catch(_: Exception) { TransactionType.EXPENSE }
         

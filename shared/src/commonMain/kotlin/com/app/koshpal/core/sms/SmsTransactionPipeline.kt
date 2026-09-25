@@ -28,16 +28,16 @@ class SmsTransactionPipeline(
 
         val resolvedTransactions = validTransactions.map { txn ->
             var updatedTxn = txn
-            
-            txn.senderName?.let { sender ->
+
+            txn.senderName.let { sender ->
                 if (sender != "Me") {
                     transactionsRepo.getContactNameByIdentifier(sender)?.let { resolved ->
                         updatedTxn = updatedTxn.copy(senderName = resolved)
                     }
                 }
             }
-            
-            txn.receiverName?.let { receiver ->
+
+            txn.receiverName.let { receiver ->
                 transactionsRepo.getContactNameByIdentifier(receiver)?.let { resolved ->
                     updatedTxn = updatedTxn.copy(receiverName = resolved)
                 }
